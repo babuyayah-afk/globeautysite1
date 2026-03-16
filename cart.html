@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>GloBeauty | Your Cart</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Paystack Library -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        /* Your existing styles - unchanged */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #990592;
+            --secondary: #fd09d4;
+            --accent: #F7D4B5;
+            --purple: #CBAACB;
+            --light: #FFF9F9;
+            --dark: #2A2D34;
+            --text: #4A4A4A;
+            --bg-primary: #FFF5F5;
+            --bg-secondary: white;
+            --card-bg: white;
+            --border-color: #FFE0E0;
+            --shadow: 0 8px 20px rgba(196, 90, 90, 0.08);
+            --hover-bg: #FFF0F0;
+            --input-bg: white;
+            --success: #4CAF50;
+            --radius: 16px;
+        }
+
+        [data-theme="dark"] {
+            --primary: #D4A5A5;
+            --secondary: #C45A5A;
+            --accent: #F7D4B5;
+            --purple: #CBAACB;
+            --light: #2A2D34;
+            --dark: #F7FFF7;
+            --text: #E0E0E0;
+            --bg-primary: #1A1C20;
+            --bg-secondary: #2A2D34;
+            --card-bg: #2A2D34;
+            --border-color: #404040;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            --hover-bg: #3A3D44;
+            --input-bg: #1A1C20;
+        }
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Cart Header */
+        .cart-header {
+            background: var(--bg-secondary);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 4px solid var(--primary);
+        }
+        
+        .cart-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart-logo {
+            display: flex;
+            align-items: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .cart-logo i {
+            margin-right: 10px;
+            color: var(--secondary);
+            -webkit-text-fill-color: var(--secondary);
+        }
+        
+        .back-to-shop {
+            background: var(--hover-bg);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        
+        .back-to-shop:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Main Cart Layout */
+        .cart-main {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        /* Cart Items Section */
+        .cart-items-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .cart-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed var(--border-color);
+        }
+        
+        .cart-title h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+        }
+        
+        .cart-title h2 span {
+            font-size: 16px;
+            opacity: 0.6;
+        }
+        
+        .clear-cart {
+            color: var(--secondary);
+            background: rgba(196,90,90,0.1);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        /* Cart Item */
+        .cart-item {
+            display: grid;
+            grid-template-columns: 60px 1fr auto auto auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-image {
+            width: 60px;
+            height: 60px;
+            background: var(--hover-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+        }
+        
+        .item-details h3 {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        
+        .item-price {
+            font-weight: 800;
+            color: var(--secondary);
+            font-size: 16px;
+        }
+        
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--hover-bg);
+            padding: 5px 10px;
+            border-radius: 30px;
+        }
+        
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: var(--card-bg);
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .qty-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .qty-number {
+            font-weight: 700;
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        .item-total {
+            font-weight: 800;
+            font-size: 16px;
+            min-width: 70px;
+            text-align: right;
+        }
+        
+        .remove-item {
+            color: var(--text);
+            opacity: 0.3;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .remove-item:hover {
+            opacity: 1;
+            color: var(--secondary);
+        }
+        
+        /* Empty Cart */
+        .empty-cart {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-cart i {
+            font-size: 60px;
+            color: var(--text);
+            opacity: 0.2;
+            margin-bottom: 15px;
+        }
+        
+        .empty-cart h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .continue-shopping {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        /* Accountant Sidebar */
+        .accountant-sidebar {
+            position: sticky;
+            top: 100px;
+            align-self: start;
+        }
+        
+        .accountant-card {
+            background: linear-gradient(145deg, #2A2D34, #1E1F24);
+            color: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+        }
+        
+        .accountant-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .accountant-header i {
+            font-size: 24px;
+            color: var(--accent);
+        }
+        
+        .accountant-header h3 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        
+        .price-line.total {
+            font-size: 20px;
+            font-weight: 800;
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Checkout Card */
+        .checkout-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--primary);
+        }
+        
+        .checkout-card h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Address Section */
+        .address-section {
+            background: var(--hover-bg);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .address-header h4 {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .live-location-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .address-form {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .address-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 14px;
+            font-family: 'Quicksand', sans-serif;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        
+        /* Payment Methods */
+        .payment-methods {
+            margin-bottom: 15px;
+        }
+        
+        .payment-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        
+        .payment-option {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .payment-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .payment-option.selected {
+            border-color: var(--primary);
+            background: var(--hover-bg);
+        }
+        
+        .payment-option i {
+            font-size: 22px;
+        }
+        
+        .payment-option span {
+            font-weight: 700;
+            font-size: 11px;
+        }
+        
+        .payment-option[data-method="mpesa"] i { color: #4CAF50; }
+        .payment-option[data-method="card"] i { color: #D4A5A5; }
+        .payment-option[data-method="bank"] i { color: #005A9C; }
+        .payment-option[data-method="prompt"] i { color: #C45A5A; }
+        
+        .payment-info-box {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            background: var(--hover-bg);
+            border-left: 3px solid var(--primary);
+            font-size: 13px;
+        }
+        
+        .payment-info-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .payment-info-content i {
+            font-size: 20px;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary), #B54A4A);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 5px;
+        }
+        
+        .checkout-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(196,90,90,0.3);
+        }
+        
+        /* Paystack Modal Responsive Fixes */
+        iframe[src*="paystack"] {
+            width: 100% !important;
+            max-width: 550px !important;
+            height: auto !important;
+            min-height: 480px !important;
+            max-height: 85vh !important;
+            border-radius: 24px !important;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        @media (max-width: 768px) {
+            iframe[src*="paystack"] {
+                max-width: 95% !important;
+                min-height: 450px !important;
+                border-radius: 20px !important;
+            }
+            
+            .cart-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cart-item {
+                grid-template-columns: 50px 1fr auto;
+                grid-template-areas: 
+                    "image details details"
+                    "image price quantity"
+                    "total total remove";
+                gap: 10px;
+            }
+            
+            .item-image { grid-area: image; }
+            .item-details { grid-area: details; }
+            .item-price { grid-area: price; }
+            .item-quantity { grid-area: quantity; justify-self: end; }
+            .item-total { grid-area: total; text-align: left; }
+            .remove-item { grid-area: remove; text-align: right; }
+            
+            iframe[src*="paystack"] {
+                min-height: 400px !important;
+                border-radius: 16px !important;
+            }
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 30px 0 15px;
+            margin-top: 40px;
+            border-radius: 30px 30px 0 0;
+        }
+        
+        .currency-note {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header class="cart-header">
+        <div class="container cart-header-container">
+            <a href="index.html" class="cart-logo">
+                <i class="fas fa-spa"></i> GloBeauty
+                <span style="background: var(--accent); color: var(--dark); padding: 4px 12px; border-radius: 30px; font-size: 12px; margin-left: 10px;">Cart</span>
+            </a>
+            <a href="home.html#products" class="back-to-shop">
+                <i class="fas fa-arrow-left"></i> Continue Shopping
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="cart-main">
+            <!-- Cart Items -->
+            <div class="cart-items-section">
+                <div class="cart-title">
+                    <h2><i class="fas fa-shopping-cart"></i> Your Cart <span id="cart-item-count">(0 items)</span></h2>
+                    <button class="clear-cart" onclick="clearCart()"><i class="fas fa-trash"></i> Clear</button>
+                </div>
+                <div id="cart-items-container"></div>
+            </div>
+            
+            <!-- Checkout Sidebar -->
+            <div class="accountant-sidebar">
+                <div class="accountant-card">
+                    <div class="accountant-header">
+                        <i class="fas fa-calculator"></i>
+                        <h3>Cart Summary</h3>
+                    </div>
+                    <div id="accountant-details">
+                        <div class="price-line"><span>Subtotal</span> <span id="subtotal-amount">KSh 0</span></div>
+                        <div class="price-line"><span>Shipping</span> <span id="shipping-amount">KSh 150</span></div>
+                        <div class="price-line total"><span>Total</span> <span id="total-amount">KSh 0</span></div>
+                    </div>
+                </div>
+                
+                <!-- Checkout Card -->
+                <div class="checkout-card">
+                    <h3><i class="fas fa-lock"></i> Checkout</h3>
+                    
+                    <!-- Address - Compact -->
+                    <div class="address-section">
+                        <div class="address-header">
+                            <h4><i class="fas fa-map-marker-alt"></i> Delivery</h4>
+                            <button class="live-location-btn" onclick="getLiveLocation()"><i class="fas fa-location-dot"></i> Live</button>
+                        </div>
+                        <div class="address-form">
+                            <input type="text" id="fullName" class="address-input" placeholder="Full Name" value="Jane Mwangi">
+                            <input type="text" id="phoneNumber" class="address-input" placeholder="Phone" value="0712 345 678">
+                            <input type="text" id="addressLine1" class="address-input" placeholder="Address" value="Kimathi Street">
+                            <input type="text" id="city" class="address-input" placeholder="City" value="Nairobi">
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Methods -->
+                    <div class="payment-methods">
+                        <div class="payment-title"><i class="fas fa-credit-card"></i> Pay With</div>
+                        <div class="payment-grid">
+                            <div class="payment-option selected" onclick="selectPayment('mpesa', this)" data-method="mpesa">
+                                <i class="fas fa-mobile-alt"></i><span>M-PESA</span>
+                            </div>
+                            <div class="payment-option" onclick="selectPayment('card', this)" data-method="card">
+                                <i class="fas fa-credit-card"></i><span>Card</span>
+                            </div>
+                            <div class="payment-option" onclick="selectPayment('bank', this)" data-method="bank">
+                                <i class="fas fa-university"></i><span>Bank</span>
+                            </div>
+                            <div class="payment-option" onclick="selectPayment('prompt', this)" data-method="prompt">
+                                <i class="fas fa-bolt"></i><span>Prompt</span>
+                            </div>
+                        </div>
+                        <div id="payment-info-box" class="payment-info-box" style="display: none;"></div>
+                    </div>
+                    
+                    <!-- Complete Order Button -->
+                    <button class="checkout-btn" onclick="completeOrder()">
+                        <i class="fas fa-shield-alt"></i> Complete Order
+                    </button>
+                    <p style="font-size: 10px; color: #999; text-align: center; margin-top: 8px;">
+                        <i class="fas fa-lock"></i> Secure • Powered by Paystack
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div style="text-align: center; font-size: 14px;">
+                <p>© 2025 GloBeauty. Secure Shopping Cart.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript - FIXED: Now properly inside script tags -->
+    <script>
+        // Cart data - Load from localStorage
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const KSH_CONVERSION = 130;
+        let selectedPaymentMethod = 'mpesa';
+
+// ===== PRODUCTS DATABASE =====
+const templateProducts = [
+    // SKINCARE (10 products)
+    { 
+        id: 1, 
+        name: "AHA BHA Miracle Toner", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 45.99, 
+        originalPrice: 55.99, 
+        description: "AHA BHA 30DAYS MIRACLE TONER with Tea Tree 10,000ppm and Niacinamide 2%", 
+        fullDescription: "A toner formulated with AHA, BHA and Tea Tree Leaf Water gently removes dead skin promotes skin turnover. Ideal for troubled skin. 150ml.", 
+        image: "aha-bha-toner.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 2, 
+        name: "Hyaluronic Acid Moisturizer", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 38.50, 
+        originalPrice: null, 
+        description: "Deep hydration that plumps and smooths fine lines.", 
+        fullDescription: "Lightweight gel-cream with 3 types of hyaluronic acid. Provides 24-hour hydration without clogging pores. Fragrance-free and suitable for sensitive skin.", 
+        image: "ha-moisturizer.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 3, 
+        name: "Gentle Foaming Cleanser", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 24.99, 
+        originalPrice: 29.99, 
+        description: "pH-balanced cleanser suitable for all skin types.", 
+        fullDescription: "Non-stripping formula with amino acids and green tea. Removes impurities while maintaining skin barrier. Paraben-free and sulfate-free.", 
+        image: "gentle-cleanser.jpg", 
+        badge: "Sale", 
+        inStock: true 
+    },
+    { 
+        id: 4, 
+        name: "Retinol Night Cream", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 52.99, 
+        originalPrice: 62.99, 
+        description: "OLAY Regenerist Retinol24 Max Night Repairing Cream", 
+        fullDescription: "Encapsulated retinol with peptides and ceramides. Reduces fine lines and improves skin texture. Suitable for experienced retinol users.", 
+        image: "retinol-cream.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 5, 
+        name: "Niacinamide Serum 10%", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 34.99, 
+        originalPrice: null, 
+        description: "Minimalist Niacinamide 10% with maritme + zinc for all skin types", 
+        fullDescription: "Pure niacinamide with zinc. Reduces sebum production and improves skin barrier. Ideal for oily and acne-prone skin.", 
+        image: "niacinamide.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 6, 
+        name: "Salicylic Acid Serum", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 28.99, 
+        originalPrice: 34.99, 
+        description: "Minimalist Salicylic Acid 02% with oligopeptide-10", 
+        fullDescription: "2% salicylic acid with soothing aloe. Unclogs pores and prevents breakouts. Suitable for daily use.", 
+        image: "salicylic-acid.jpg", 
+        badge: "Acne Solution", 
+        inStock: true 
+    },
+    { 
+        id: 7, 
+        name: "Peptide Eye Cream", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 42.50, 
+        originalPrice: null, 
+        description: "Medicube Reviving Peptide Eye Cream 20,000ppm", 
+        fullDescription: "Cooling eye cream with peptides and caffeine. Diminishes fine lines and depuffs tired eyes. Ophthalmologist tested.", 
+        image: "eye-cream.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 8, 
+        name: "Clay Mask", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 26.99, 
+        originalPrice: 32.99, 
+        description: "L'Oreal Pure Clay Glow Mask / Detox Mask / Purity Mask", 
+        fullDescription: "Purifying mask that draws out impurities and excess oil. Contains charcoal and tea tree oil. Leaves skin fresh and clarified.", 
+        image: "clay-mask.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 9, 
+        name: "Vitamin C Brightening Serum", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 45.99, 
+        originalPrice: 55.99, 
+        description: "10% Pure Vitamin C serum for glowing skin", 
+        fullDescription: "Brightening serum with 10% pure Vitamin C that evens skin tone and reduces hyperpigmentation.", 
+        image: "vitamin-c-serum.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 10, 
+        name: "Sunscreen SPF 50", 
+        category: "skincare", 
+        categoryDisplay: "Skincare", 
+        price: 32.99, 
+        originalPrice: 38.99, 
+        description: "La Roche-Posay Anthelios UV Mune 400 invisible fluid", 
+        fullDescription: "Broad spectrum SPF 50 protection with no white cast. Ultra-long UVA protection. Suitable for sensitive skin.", 
+        image: "sunscreen.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+
+    // MAKEUP (10 products)
+    { 
+        id: 11, 
+        name: "Micro Brow Pencil", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 18.99, 
+        originalPrice: null, 
+        description: "Break resistant, reinforced crayon for brows that doesn't smudge", 
+        fullDescription: "Fine tip pencil for natural, hair-like strokes. Waterproof and smudge-proof formula. Includes spoolie brush for blending.", 
+        image: "brow-pencil.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+    { 
+        id: 12, 
+        name: "Pro Conceal", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 22.99, 
+        originalPrice: null, 
+        description: "Professional concealer for perfect coverage", 
+        fullDescription: "Highly pigmented concealer that won't crease. Enriched with hyaluronic acid for hydration. Available in 12 shades.", 
+        image: "concealer.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 13, 
+        name: "Epic Liner", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 19.99, 
+        originalPrice: 24.99, 
+        description: "NYX professional makeup liner", 
+        fullDescription: "Intense black pigment with felt-tip applicator. Smudge-proof and long-wearing formula. Creates perfect wings every time.", 
+        image: "eyeliner.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 14, 
+        name: "Pro Pigment Palette", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 39.99, 
+        originalPrice: 49.99, 
+        description: "28 warm tones eyeshadow palette", 
+        fullDescription: "Highly pigmented, blendable shadows with matte, shimmer, and metallic finishes. Long-wearing formula with minimal fallout.", 
+        image: "eyeshadow.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 15, 
+        name: "Foundation + Concealer", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 42.99, 
+        originalPrice: null, 
+        description: "Milan 2-in-1 Foundation + Concealer, Deep Beige", 
+        fullDescription: "Medium-to-full coverage foundation that lasts 16 hours. Oil-free formula with SPF 20. Available in 20 shades.", 
+        image: "foundation.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 16, 
+        name: "Dreamy Lip Gloss Set", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 24.99, 
+        originalPrice: null, 
+        description: "TVLV Lasting without decolorization lip gloss set", 
+        fullDescription: "Non-sticky gloss formula with vitamin E. Sheer to medium coverage with mirror-like shine. Available in clear, pink, and nude.", 
+        image: "lip-gloss.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 17, 
+        name: "Outrageous Mascara", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 24.99, 
+        originalPrice: 29.99, 
+        description: "400% volume + length, sulfate-free, non-smudge formula", 
+        fullDescription: "Buildable formula with conditioning fibers. Adds dramatic volume and length. Smudge-proof and long-wearing.", 
+        image: "mascara.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 18, 
+        name: "Setting Spray Matte Finish", 
+        category: "makeup", 
+        categoryDisplay: "Makeup", 
+        price: 29.99, 
+        originalPrice: 34.99, 
+        description: "Kylie Cosmetics setting spray with matte finish", 
+        fullDescription: "Fine mist that locks makeup in place for up to 16 hours. Alcohol-free with cooling sensation. Suitable for all skin types.", 
+        image: "setting-spray.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+
+    // HAIRCARE (10 products)
+    { 
+        id: 21, 
+        name: "Dry Shampoo", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 19.99, 
+        originalPrice: null, 
+        description: "Batiste Powder Dry Shampoo for volume", 
+        fullDescription: "Absorbs oil and adds volume instantly. Invisible formula with no white cast. Fresh, clean scent with natural ingredients.", 
+        image: "dry-shampoo.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 22, 
+        name: "Pistachio Hair Mask", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 34.99, 
+        originalPrice: 39.99, 
+        description: "Omega 3-6-9 enriched hair mask", 
+        fullDescription: "Rich mask with shea butter and coconut oil. Restores moisture and elasticity in 10 minutes. Color-safe and paraben-free.", 
+        image: "hair-mask.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 23, 
+        name: "Rosemary Essential Oil", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 32.99, 
+        originalPrice: null, 
+        description: "Maple Holistics rosemary oil for hair growth", 
+        fullDescription: "Blend of argan, jojoba, and marula oils. Tames frizz and adds incredible shine. Can be used on wet or dry hair.", 
+        image: "hair-oil.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 24, 
+        name: "Hair Growth Serum", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 42.99, 
+        originalPrice: 49.99, 
+        description: "Sefudun Hair Growth Serum with Biotin 5%", 
+        fullDescription: "Peptide-rich serum with biotin and caffeine. Promotes hair growth and reduces shedding. Non-greasy formula for scalp application.", 
+        image: "hair-serum.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 25, 
+        name: "Herbal Shampoo", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 28.99, 
+        originalPrice: 34.99, 
+        description: "Bioxcin Forte Herbal Shampoo for intensive hair loss", 
+        fullDescription: "Gentle cleansing shampoo with argan oil and keratin. Suitable for all hair types, especially color-treated hair. Paraben-free and silicone-free.", 
+        image: "shampoo.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 26, 
+        name: "Rosemary + Mint Scalp Scrub", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 29.99, 
+        originalPrice: 34.99, 
+        description: "Deep cleansing scalp scrub for itch relief", 
+        fullDescription: "Gentle physical exfoliant with sea salt and tea tree. Removes buildup and stimulates circulation. Leaves scalp feeling fresh and clean.", 
+        image: "scalp-scrub.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 27, 
+        name: "Heat Protectant Spray", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 24.99, 
+        originalPrice: null, 
+        description: "TRESemme heat protectant spray up to 450°F", 
+        fullDescription: "Lightweight spray that creates a protective barrier against heat styling. Adds shine and reduces frizz. Suitable for all hair types.", 
+        image: "heat-protectant.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+    { 
+        id: 28, 
+        name: "Leave-In Conditioner", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 26.99, 
+        originalPrice: 32.99, 
+        description: "Basi Leave In Conditioner", 
+        fullDescription: "Lightweight leave-in spray with UV protection. Detangles knots and prevents breakage. Adds shine without weighing hair down.", 
+        image: "leave-in.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 29, 
+        name: "Sea Salt Spray", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 27.99, 
+        originalPrice: null, 
+        description: "Forte Sea Salt Spray for texture", 
+        fullDescription: "Sea salt spray that adds texture and body. Flexible hold that doesn't leave hair crunchy. Ideal for creating effortless waves.", 
+        image: "texturizing-spray.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 30, 
+        name: "Conditioner", 
+        category: "haircare", 
+        categoryDisplay: "Haircare", 
+        price: 24.99, 
+        originalPrice: 29.99, 
+        description: "Nourishing conditioner for soft, manageable hair", 
+        fullDescription: "Hydrating conditioner that detangles and softens hair. Suitable for daily use.", 
+        image: "conditioner.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+
+    // FRAGRANCE (10 products)
+    { 
+        id: 31, 
+        name: "Oud Collection", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 65.99, 
+        originalPrice: 79.99, 
+        description: "Sweet Oud, Spiced Oud, Dark Oud, Royal Oud, Rose Oud", 
+        fullDescription: "Luxurious oud fragrance collection with various notes. Long-lasting and sophisticated.", 
+        image: "aromatherapy.jpg", 
+        badge: "Luxury", 
+        inStock: true 
+    },
+    { 
+        id: 32, 
+        name: "Citrus Body Mist", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 28.99, 
+        originalPrice: 34.99, 
+        description: "Fresh and energizing citrus perfume mist", 
+        fullDescription: "Light and refreshing body mist with notes of grapefruit, mandarin, and lemon. Perfect for everyday wear. Layerable and alcohol-free.", 
+        image: "citrus-mist.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 33, 
+        name: "Flowerbomb", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 89.99, 
+        originalPrice: 110.99, 
+        description: "Viktor&Rolf Flowerbomb Eau de Parfum", 
+        fullDescription: "Romantic floral fragrance with top notes of Italian bergamot, heart of rose and jasmine, and base of white musk. Long-lasting 8+ hours.", 
+        image: "floral-perfume.jpg", 
+        badge: "Luxury", 
+        inStock: true 
+    },
+    { 
+        id: 34, 
+        name: "BOSS Unlimited", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 58.99, 
+        originalPrice: null, 
+        description: "Hugo Boss men's cologne", 
+        fullDescription: "Sophisticated woody fragrance with top notes of bergamot, heart of cedarwood, and base of sandalwood and amber. Long-lasting and versatile.", 
+        image: "mens-cologne.jpg", 
+        badge: "Luxury", 
+        inStock: true 
+    },
+    { 
+        id: 35, 
+        name: "Vanilla Voyage", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 52.99, 
+        originalPrice: 62.99, 
+        description: "Maison Asrar Vanilla Voyage", 
+        fullDescription: "Gourmand fragrance with top notes of Italian bergamot, heart of vanilla orchid, and base of caramel and sandalwood. Long-lasting 6+ hours.", 
+        image: "vanilla-perfume.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 36, 
+        name: "Room & Linen Spray", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 19.99, 
+        originalPrice: 24.99, 
+        description: "Lily Joelles Room & Linen Spray", 
+        fullDescription: "Multi-purpose spray with notes of cotton, white flowers, and clean musk. Can be used on body, linens, or as room spray.", 
+        image: "linen-spray.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 37, 
+        name: "Palermo Body Oil", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 24.99, 
+        originalPrice: null, 
+        description: "Palermo Body perfume oil", 
+        fullDescription: "Concentrated perfume oil. Notes of vanilla, sandalwood, and musk. Alcohol-free and gentle on skin.", 
+        image: "perfume-oil.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 38, 
+        name: "Solid Perfume", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 22.99, 
+        originalPrice: 28.99, 
+        description: "EM5 Solid Perfume - Woody Oud, Nomade", 
+        fullDescription: "Wax-based solid perfume with notes of rose, jasmine, and sandalwood. Comes in beautiful compact for easy touch-ups throughout the day.", 
+        image: "solid-perfume.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 39, 
+        name: "Luxury Scent", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 16.99, 
+        originalPrice: null, 
+        description: "Luxury Scent Fine Perfume", 
+        fullDescription: "Lavender and chamomile essential oil blend. Perfect for relaxation.", 
+        image: "perfume-set.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 40, 
+        name: "The One Cologne", 
+        category: "fragrance", 
+        categoryDisplay: "Fragrance", 
+        price: 48.99, 
+        originalPrice: null, 
+        description: "Dolo&Ganbana The One cologne", 
+        fullDescription: "Masculine fragrance with top notes of sea salt and bergamot, heart of lavender, and base of cedar and musk. Perfect for daily wear.", 
+        image: "woody-cologne.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+
+    // NAIL CARE (10 products)
+    
+    { 
+        id: 42, 
+        name: "Nail Strengthener Treatment", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 14.50, 
+        originalPrice: null, 
+        description: "Fortifies weak and brittle nails", 
+        fullDescription: "Treatment formula with keratin and calcium that strengthens nails and prevents breakage. Use as base coat or alone.", 
+        image: "nail-strainghner.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+    { 
+        id: 43, 
+        name: "Cuticle Oil Pen", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 8.99, 
+        originalPrice: 11.99, 
+        description: "Nourishing oil for healthy cuticles", 
+        fullDescription: "Vitamin E and jojoba oil blend in convenient pen applicator. Hydrates cuticles and promotes nail health. Perfect for on-the-go.", 
+        image: "cuticle-oil.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 44, 
+        name: "Quick-Dry Top Coat", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 10.99, 
+        originalPrice: 13.99, 
+        description: "Seals color and dries in 60 seconds", 
+        fullDescription: "Fast-drying top coat that locks in color and adds brilliant shine. Prevents chipping and extends manicure life.", 
+        image: "top-coat.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 45, 
+        name: "Gel Effect Polish", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 15.99, 
+        originalPrice: 19.99, 
+        description: "Salon-quality shine without UV light", 
+        fullDescription: "Gel-effect polish that gives high-shine finish without needing UV lamp. Long-wearing formula that lasts up to 10 days.", 
+        image: "gel-polish.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 46, 
+        name: "Nail Art Kit", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 24.99, 
+        originalPrice: 29.99, 
+        description: "Complete set for creative nail designs", 
+        fullDescription: "Comprehensive nail art kit with dotting tools, brushes, rhinestones, and striping tape. Perfect for creating professional-looking nail art at home.", 
+        image: "nail-art.jpg", 
+        badge: "New", 
+        inStock: true 
+    },
+    { 
+        id: 47, 
+        name: "Matte Finish Top Coat", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 9.99, 
+        originalPrice: 12.99, 
+        description: "Transforms any polish to matte finish", 
+        fullDescription: "Matte top coat that gives any nail polish a sophisticated matte finish. Quick-drying and long-lasting.", 
+        image: "matte-top-coat.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 48, 
+        name: "Nail File & Buffer Set", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 7.99, 
+        originalPrice: null, 
+        description: "Professional-grade shaping tools", 
+        fullDescription: "Set includes 2 nail files and 1 buffer. Dual-grit files for shaping and smoothing. Buffer creates natural shine without polish.", 
+        image: "nail-file.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+    { 
+        id: 49, 
+        name: "Nail Polish Remover", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 6.99, 
+        originalPrice: 8.99, 
+        description: "Acetone-free, gentle formula", 
+        fullDescription: "Gentle, non-drying nail polish remover with vitamin E. Removes polish quickly without drying nails or cuticles. Acetone-free formula.", 
+        image: "polish-remover.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+    { 
+        id: 50, 
+        name: "Base Coat Primer", 
+        category: "nail", 
+        categoryDisplay: "Nail Care", 
+        price: 8.50, 
+        originalPrice: 10.99, 
+        description: "Protects nails and extends polish wear", 
+        fullDescription: "Strengthening base coat that smooths nail surface and prevents staining. Helps polish adhere better and last longer.", 
+        image: "base-coat.jpg", 
+        badge: "Essential", 
+        inStock: true 
+    },
+
+    // TOOLS (10 products) - Keeping original tools
+    { 
+        id: 51, 
+        name: "Jade Roller Set", 
+        category: "tools", 
+        categoryDisplay: "Beauty Tools", 
+        price: 29.99, 
+        originalPrice: null, 
+        description: "Reduces puffiness and boosts circulation.", 
+        fullDescription: "100% authentic jade roller set includes face roller and under-eye attachment. Helps with lymphatic drainage and product absorption.", 
+        image: "jade-roller.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 52, 
+        name: "Makeup Brush Set", 
+        category: "tools", 
+        categoryDisplay: "Beauty Tools", 
+        price: 39.99, 
+        originalPrice: 49.99, 
+        description: "10-piece set with synthetic bristles.", 
+        fullDescription: "Complete brush set includes foundation, powder, blush, eyeshadow, and blending brushes. Synthetic bristles are cruelty-free and easy to clean.", 
+        image: "brush-set.jpg", 
+        badge: "Bestseller", 
+        inStock: true 
+    },
+    { 
+        id: 53, 
+        name: "LED Light Therapy Mask", 
+        category: "tools", 
+        categoryDisplay: "Beauty Tools", 
+        price: 199.99, 
+        originalPrice: 249.99, 
+        description: "Anti-aging and acne treatment at home.", 
+        fullDescription: "Professional-grade LED mask with red and blue light therapy. Red light for anti-aging, blue light for acne. Hands-free design with remote control.", 
+        image: "led-mask.jpg", 
+        badge: "Luxury", 
+        inStock: true 
+    },
+    { 
+        id: 54, 
+        name: "Microdermabrasion Tool", 
+        category: "tools", 
+        categoryDisplay: "Beauty Tools", 
+        price: 79.99, 
+        originalPrice: 99.99, 
+        description: "Gentle exfoliation for smoother skin.", 
+        fullDescription: "At-home microdermabrasion device with diamond tip exfoliation. Includes multiple heads for different skin concerns. Rechargeable and waterproof.", 
+        image: "microderm.jpg", 
+        badge: "New", 
+        inStock: true 
+    }
+];
+
+
+// This will hold ALL products (template + Firestore)
+let products = [...templateProducts]; // Start with template products
+
+// Load products from Firestore and merge with templates
+async function loadProductsFromFirestore() {
+    try {
+        const productsSnap = await getDocs(collection(db, "products"));
+        
+        if (!productsSnap.empty) {
+            // Convert Firestore products to array
+            const firestoreProducts = [];
+            productsSnap.forEach(doc => {
+                firestoreProducts.push({
+                    id: doc.id, // This will be a string like "abc123..."
+                    ...doc.data()
+                });
+            });
+            
+            // Merge: template products + Firestore products
+            products = [...templateProducts, ...firestoreProducts];
+            console.log(`📦 Cart: Loaded ${templateProducts.length} template + ${firestoreProducts.length} custom products`);
+        } else {
+            // No Firestore products, just use templates
+            products = [...templateProducts];
+            console.log(`📦 Cart: No Firestore products, using ${templateProducts.length} template products`);
+        }
+        
+        // Re-render cart with updated products
+        renderCart();
+        
+    } catch (error) {
+        console.error('Error loading from Firestore, using templates only:', error);
+        products = [...templateProducts];
+        renderCart();
+    }
+}
+        // Convert USD to KSH
+        function toKSH(usd) {
+            return Math.round(usd * KSH_CONVERSION);
+        }
+
+        // ===== FIXED ADD TO CART FUNCTION =====
+        // This function should be called from home.html
+        function addToCart(productId) {
+            // Find the product
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                console.error('Product not found');
+                return;
+            }
+            
+            // Check if product already in cart
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                // If exists, increase quantity
+                existingItem.quantity += 1;
+            } else {
+                // If new, add with quantity 1
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    icon: product.icon,
+                    category: product.category
+                });
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Update cart count display if it exists
+            updateCartCount();
+            
+            // Show feedback
+            alert(`${product.name} added to cart!`);
+            
+            // If on cart page, refresh display
+            if (document.getElementById('cart-items-container')) {
+                renderCart();
+            }
+        }
+
+        // Update cart count in header (call this from any page)
+        function updateCartCount() {
+            const cartCountElements = document.querySelectorAll('.cart-count, #cart-count');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            cartCountElements.forEach(el => {
+                if (el) el.textContent = `(${totalItems} items)`;
+            });
+            
+            // Also update localStorage for other pages
+            localStorage.setItem('cartCount', totalItems);
+        }
+
+        // ===== FIXED RENDER CART FUNCTION =====
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const cartCount = document.getElementById('cart-item-count');
+            
+            if (!container) return;
+            
+            if (!cart || cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>Your cart is empty</h3>
+                        <p>Looks like you haven't added any beauty products yet.</p>
+                        <a href="home.html#products" class="continue-shopping">
+                            <i class="fas fa-arrow-left"></i> Start Shopping
+                        </a>
+                    </div>
+                `;
+                if (cartCount) cartCount.textContent = '(0 items)';
+                updateTotals();
+                return;
+            }
+            
+            let totalItems = 0;
+            let html = '';
+            
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.id) || item;
+                totalItems += item.quantity;
+                const itemTotal = product.price * item.quantity;
+                const kshPrice = toKSH(product.price);
+                const kshTotal = toKSH(itemTotal);
+                
+                html += `
+                    <div class="cart-item" data-product-id="${product.id}">
+                        <div class="item-image">
+                            <i class="fas ${product.icon}"></i>
+                        </div>
+                        <div class="item-details">
+                            <h3>${product.name}</h3>
+                            <span class="item-category">
+                                <i class="fas ${getCategoryIcon(product.category)}"></i> ${product.category || 'Beauty'}
+                            </span>
+                        </div>
+                        <div class="item-price">
+                            KSh ${kshPrice.toLocaleString()}
+                        </div>
+                          <div class="item-quantity">
+            <button class="qty-btn" onclick="updateQuantity('${product.id}', ${item.quantity - 1})">−</button>
+            <span class="qty-number">${item.quantity}</span>
+            <button class="qty-btn" onclick="updateQuantity('${product.id}', ${item.quantity + 1})">+</button>
+        </div>
+                        <div class="item-total">
+                            KSh ${kshTotal.toLocaleString()}
+                        </div>
+<div class="remove-item" onclick="removeFromCart('${product.id}')">
+    <i class="fas fa-times-circle"></i>
+</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            if (cartCount) cartCount.textContent = `(${totalItems} items)`;
+            updateTotals();
+            updateCartCount();
+        }
+
+        // Helper function for category icon
+        function getCategoryIcon(category) {
+            const icons = {
+                skincare: 'fa-spa',
+                makeup: 'fa-paint-brush',
+                haircare: 'fa-hand-holding-heart',
+                fragrance: 'fa-feather-alt',
+                tools: 'fa-bolt',
+                body: 'fa-spa'
+            };
+            return icons[category] || 'fa-tag';
+        }
+
+        // ===== FIXED UPDATE QUANTITY =====
+        function updateQuantity(productId, newQuantity) {
+            if (newQuantity < 1) {
+                removeFromCart(productId);
+                return;
+            }
+            
+            const itemIndex = cart.findIndex(item => item.id === productId);
+            if (itemIndex !== -1) {
+                cart[itemIndex].quantity = newQuantity;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+            }
+        }
+
+        // ===== FIXED REMOVE FROM CART =====
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        // ===== FIXED CLEAR CART =====
+        function clearCart() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+            }
+        }
+
+        // ===== FIXED UPDATE TOTALS =====
+        function updateTotals() {
+            let subtotalUSD = 0;
+            let totalItems = 0;
+            
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.id) || item;
+                subtotalUSD += product.price * item.quantity;
+                totalItems += item.quantity;
+            });
+            
+            const subtotalKSH = toKSH(subtotalUSD);
+            
+            // Calculate free sample offer (1 sample for every 4 items)
+            const freeSamplesCount = Math.floor(totalItems / 4);
+            
+            // Shipping (KSh 150 flat rate, free if subtotal > KSh 3000)
+            const shippingKSH = subtotalKSH > 3000 ? 0 : 150;
+            
+            // Total
+            const totalKSH = subtotalKSH + shippingKSH;
+            
+            // Update DOM
+            const subtotalEl = document.getElementById('subtotal-amount');
+            const shippingEl = document.getElementById('shipping-amount');
+            const totalEl = document.getElementById('total-amount');
+            
+            if (subtotalEl) subtotalEl.textContent = `KSh ${subtotalKSH.toLocaleString()}`;
+            if (shippingEl) shippingEl.textContent = shippingKSH === 0 ? 'Free' : `KSh ${shippingKSH.toLocaleString()}`;
+            if (totalEl) totalEl.textContent = `KSh ${Math.round(totalKSH).toLocaleString()}`;
+        }
+
+        // ===== PAYMENT METHODS =====
+        function selectPayment(method, element) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            showPaymentInfo(method);
+        }
+
+        function showPaymentInfo(method) {
+            const infoBox = document.getElementById('payment-info-box');
+            const details = {
+                mpesa: { icon: "fa-mobile-alt", title: "M-PESA", msg: "STK push sent to your phone", color: "#4CAF50" },
+                card: { icon: "fa-credit-card", title: "Credit Card", msg: "Visa/Mastercard accepted", color: "#D4A5A5" },
+                bank: { icon: "fa-university", title: "KCB Bank", msg: "Get temporary account number", color: "#005A9C" },
+                prompt: { icon: "fa-bolt", title: "Send Prompt", msg: "Instant payment notification", color: "#C45A5A" }
+            };
+            const d = details[method];
+            infoBox.style.display = 'block';
+            infoBox.innerHTML = `
+                <div class="payment-info-content">
+                    <i class="fas ${d.icon}" style="color: ${d.color};"></i>
+                    <div><strong style="color: ${d.color};">${d.title}</strong><br>${d.msg}</div>
+                </div>
+            `;
+        }
+
+        // ===== LIVE LOCATION =====
+        function getLiveLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('addressLine1').value = `Location: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+                });
+            }
+        }
+
+        // ===== COMPLETE ORDER WITH PAYSTACK =====
+        window.completeOrder = async function() {
+            // Get logged-in user from Firebase
+            const user = window.auth?.currentUser;
+            
+            // If user is not logged in, let them checkout as guest
+            if (!user) {
+                // For guest checkout, validate manual fields
+                const name = document.getElementById('fullName').value.trim();
+                const phone = document.getElementById('phoneNumber').value.trim();
+                const address = document.getElementById('addressLine1').value.trim();
+                
+                if (!name || !phone || !address) {
+                    alert('Please fill in all delivery fields');
+                    return;
+                }
+                
+                // Process guest checkout
+                processPayment({
+                    email: phone.replace(/\s/g, '') + '@customer.globeauty.com',
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    city: document.getElementById('city').value.trim() || 'Nairobi',
+                    userId: 'guest'
+                });
+                return;
+            }
+            
+            // USER IS LOGGED IN - AUTO-FILL EVERYTHING!
+            
+            try {
+                // Get additional user data from Firestore
+                const userDoc = await window.getDoc(window.doc(window.db, "users", user.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+                
+                // Auto-fill form fields with user data (for display)
+                if (userData.name || user.displayName) {
+                    document.getElementById('fullName').value = userData.name || user.displayName || '';
+                }
+                if (userData.phone) {
+                    document.getElementById('phoneNumber').value = userData.phone || '';
+                }
+                if (userData.address) {
+                    document.getElementById('addressLine1').value = userData.address || '';
+                }
+                if (userData.city) {
+                    document.getElementById('city').value = userData.city || '';
+                }
+                
+                // Process payment with user's real data
+                processPayment({
+                    email: user.email,
+                    name: userData.name || user.displayName || 'Customer',
+                    phone: userData.phone || document.getElementById('phoneNumber').value || 'Not provided',
+                    address: userData.address || document.getElementById('addressLine1').value || 'Not provided',
+                    city: userData.city || document.getElementById('city').value || 'Nairobi',
+                    userId: user.uid
+                });
+                
+            } catch (error) {
+                console.error('Error getting user data:', error);
+                // Fallback to basic user info
+                processPayment({
+                    email: user.email,
+                    name: user.displayName || document.getElementById('fullName').value || 'Customer',
+                    phone: document.getElementById('phoneNumber').value || 'Not provided',
+                    address: document.getElementById('addressLine1').value || 'Not provided',
+                    city: document.getElementById('city').value || 'Nairobi',
+                    userId: user.uid
+                });
+            }
+        }
+
+        // Separate function to handle actual payment
+        function processPayment(customerInfo) {
+            if (cart.length === 0) {
+                alert('Your cart is empty');
+                return;
+            }
+            
+            const totalText = document.getElementById('total-amount').textContent;
+            const totalKSH = parseInt(totalText.replace(/[^0-9]/g, ''));
+            const orderRef = `GLB${Date.now()}`;
+            
+            // Initialize Paystack with AUTO-FILLED customer data
+            const handler = PaystackPop.setup({
+                key: 'pk_test_3240381069e818f5b0cdeb2a016bb2da67c1b0cf', // Your test key
+                email: customerInfo.email,
+                amount: totalKSH * 100,
+                currency: 'KES',
+                ref: orderRef,
+                channels: ['card', 'mpesa', 'bank_transfer'],
+                
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Customer Name",
+                            variable_name: "customer_name",
+                            value: customerInfo.name
+                        },
+                        {
+                            display_name: "Phone Number",
+                            variable_name: "customer_phone",
+                            value: customerInfo.phone
+                        },
+                        {
+                            display_name: "User ID",
+                            variable_name: "user_id",
+                            value: customerInfo.userId || 'guest'
+                        }
+                    ]
+                },
+                
+                callback: function(response) {
+                    // Payment successful!
+                    saveOrderToFirebase(response, customerInfo, totalKSH);
+                },
+                
+                onClose: function() {
+                    alert('Payment cancelled');
+                }
+            });
+            
+            handler.openIframe();
+        }
+
+        // Save order to Firebase
+        async function saveOrderToFirebase(paymentResponse, customerInfo, totalKSH) {
+            try {
+                const orderData = {
+                    customerName: customerInfo.name,
+                    customerEmail: customerInfo.email,
+                    phone: customerInfo.phone,
+                    address: customerInfo.address,
+                    city: customerInfo.city,
+                    items: cart.map(item => {
+                        const product = products.find(p => p.id === item.id);
+                        return {
+                            name: product.name,
+                            quantity: item.quantity,
+                            price: product.price
+                        };
+                    }),
+                    total: totalKSH,
+                    paymentMethod: selectedPaymentMethod,
+                    paymentReference: paymentResponse.reference,
+                    status: 'paid',
+                    paidAt: new Date().toISOString(),
+                    userId: customerInfo.userId || 'guest'
+                };
+                
+                // Save to Firestore if user is logged in
+                if (customerInfo.userId && customerInfo.userId !== 'guest' && window.db) {
+                    await window.addDoc(window.collection(window.db, "orders"), {
+                        ...orderData,
+                        createdAt: window.serverTimestamp()
+                    });
+                    console.log('Order saved to Firestore');
+                } else {
+                    // Save to localStorage for guests
+                    const guestOrders = JSON.parse(localStorage.getItem('guestOrders') || '[]');
+                    guestOrders.push(orderData);
+                    localStorage.setItem('guestOrders', JSON.stringify(guestOrders));
+                    console.log('Order saved to localStorage');
+                }
+                
+                alert(`✅ Payment successful! Thank you for your order.`);
+                
+                // Clear cart
+                cart = [];
+                localStorage.setItem('cart', JSON.stringify(cart));
+                renderCart();
+                
+            } catch (error) {
+                console.error('Error saving order:', error);
+                alert('Payment successful but order not saved. Please contact support.');
+            }
+        }
+
+     // Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderCart();
+    showPaymentInfo('mpesa');
+    
+    // 👇 Load products from Firestore
+    if (window.db) {
+        loadProductsFromFirestore();
+    }
+    
+    // Check for offer badge element and hide it initially
+    const offerBadge = document.getElementById('offer-badge');
+    if (offerBadge) offerBadge.style.display = 'none';
+});
+    </script>
+
+    <!-- Firebase Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        // YOUR EXISTING FIREBASE CONFIG - UNCHANGED
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmL_Mv9YJM72FC2LLDvdluOUXUmMxQjc8",
+            authDomain: "littleexplorers-kenya.firebaseapp.com",
+            projectId: "littleexplorers-kenya",
+            storageBucket: "littleexplorers-kenya.firebasestorage.app",
+            messagingSenderId: "737872854301",
+            appId: "1:737872854301:web:18b6e0d163ddb9c2f5b5f4"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.auth = auth;
+        window.db = db;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.serverTimestamp = serverTimestamp;
+
+   // Listen for auth state changes
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log('User logged in:', user.email);
+        
+        // 👇 Load products first (BEFORE auto-filling)
+        await loadProductsFromFirestore();
+        
+        // Auto-fill checkout form with user data
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.name) document.getElementById('fullName').value = data.name;
+                if (data.phone) document.getElementById('phoneNumber').value = data.phone;
+                if (data.address) document.getElementById('addressLine1').value = data.address;
+                if (data.city) document.getElementById('city').value = data.city;
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    } else {
+        // User is logged out - still load products
+        await loadProductsFromFirestore();
+    }
+});
+    </script>
+</body>
+</html>
