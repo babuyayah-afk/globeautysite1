@@ -1985,6 +1985,26 @@
 }
 
 /* For non-admin users, the button won't even appear */
+/* Loading spinner */
+.loading-spinner {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
@@ -2272,6 +2292,11 @@
             
             <!-- Products Grid -->
             <div class="products-grid" id="products-grid">
+                // In your HTML, add this inside the products-grid div initially
+<div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading beauty products...</p>
+</div>
                 <!-- Products will be loaded here via JavaScript -->
             </div>
             
@@ -2654,684 +2679,65 @@
             });
         });
         
-// ===== PRODUCTS DATABASE =====
-const products = [
-    // SKINCARE (10 products)
-    { 
-        id: 1, 
-        name: "AHA BHA Miracle Toner", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 45.99, 
-        originalPrice: 55.99, 
-        description: "AHA BHA 30DAYS MIRACLE TONER with Tea Tree 10,000ppm and Niacinamide 2%", 
-        fullDescription: "A toner formulated with AHA, BHA and Tea Tree Leaf Water gently removes dead skin promotes skin turnover. Ideal for troubled skin. 150ml.", 
-        image: "aha-bha-toner.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 2, 
-        name: "Hyaluronic Acid Moisturizer", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 38.50, 
-        originalPrice: null, 
-        description: "Deep hydration that plumps and smooths fine lines.", 
-        fullDescription: "Lightweight gel-cream with 3 types of hyaluronic acid. Provides 24-hour hydration without clogging pores. Fragrance-free and suitable for sensitive skin.", 
-        image: "ha-moisturizer.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 3, 
-        name: "Gentle Foaming Cleanser", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 24.99, 
-        originalPrice: 29.99, 
-        description: "pH-balanced cleanser suitable for all skin types.", 
-        fullDescription: "Non-stripping formula with amino acids and green tea. Removes impurities while maintaining skin barrier. Paraben-free and sulfate-free.", 
-        image: "gentle-cleanser.jpg", 
-        badge: "Sale", 
-        inStock: true 
-    },
-    { 
-        id: 4, 
-        name: "Retinol Night Cream", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 52.99, 
-        originalPrice: 62.99, 
-        description: "OLAY Regenerist Retinol24 Max Night Repairing Cream", 
-        fullDescription: "Encapsulated retinol with peptides and ceramides. Reduces fine lines and improves skin texture. Suitable for experienced retinol users.", 
-        image: "retinol-cream.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 5, 
-        name: "Niacinamide Serum 10%", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 34.99, 
-        originalPrice: null, 
-        description: "Minimalist Niacinamide 10% with maritme + zinc for all skin types", 
-        fullDescription: "Pure niacinamide with zinc. Reduces sebum production and improves skin barrier. Ideal for oily and acne-prone skin.", 
-        image: "niacinamide.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 6, 
-        name: "Salicylic Acid Serum", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 28.99, 
-        originalPrice: 34.99, 
-        description: "Minimalist Salicylic Acid 02% with oligopeptide-10", 
-        fullDescription: "2% salicylic acid with soothing aloe. Unclogs pores and prevents breakouts. Suitable for daily use.", 
-        image: "salicylic-acid.jpg", 
-        badge: "Acne Solution", 
-        inStock: true 
-    },
-    { 
-        id: 7, 
-        name: "Peptide Eye Cream", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 42.50, 
-        originalPrice: null, 
-        description: "Medicube Reviving Peptide Eye Cream 20,000ppm", 
-        fullDescription: "Cooling eye cream with peptides and caffeine. Diminishes fine lines and depuffs tired eyes. Ophthalmologist tested.", 
-        image: "eye-cream.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 8, 
-        name: "Clay Mask", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 26.99, 
-        originalPrice: 32.99, 
-        description: "L'Oreal Pure Clay Glow Mask / Detox Mask / Purity Mask", 
-        fullDescription: "Purifying mask that draws out impurities and excess oil. Contains charcoal and tea tree oil. Leaves skin fresh and clarified.", 
-        image: "clay-mask.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 9, 
-        name: "Vitamin C Brightening Serum", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 45.99, 
-        originalPrice: 55.99, 
-        description: "10% Pure Vitamin C serum for glowing skin", 
-        fullDescription: "Brightening serum with 10% pure Vitamin C that evens skin tone and reduces hyperpigmentation.", 
-        image: "vitamin-c-serum.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 10, 
-        name: "Sunscreen SPF 50", 
-        category: "skincare", 
-        categoryDisplay: "Skincare", 
-        price: 32.99, 
-        originalPrice: 38.99, 
-        description: "La Roche-Posay Anthelios UV Mune 400 invisible fluid", 
-        fullDescription: "Broad spectrum SPF 50 protection with no white cast. Ultra-long UVA protection. Suitable for sensitive skin.", 
-        image: "sunscreen.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
+// ===== LOAD PRODUCTS FROM FIREBASE =====
+let products = []; // Will be populated from Firebase
 
-    // MAKEUP (10 products)
-    { 
-        id: 11, 
-        name: "Micro Brow Pencil", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 18.99, 
-        originalPrice: null, 
-        description: "Break resistant, reinforced crayon for brows that doesn't smudge", 
-        fullDescription: "Fine tip pencil for natural, hair-like strokes. Waterproof and smudge-proof formula. Includes spoolie brush for blending.", 
-        image: "brow-pencil.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-    { 
-        id: 12, 
-        name: "Pro Conceal", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 22.99, 
-        originalPrice: null, 
-        description: "Professional concealer for perfect coverage", 
-        fullDescription: "Highly pigmented concealer that won't crease. Enriched with hyaluronic acid for hydration. Available in 12 shades.", 
-        image: "concealer.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 13, 
-        name: "Epic Liner", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 19.99, 
-        originalPrice: 24.99, 
-        description: "NYX professional makeup liner", 
-        fullDescription: "Intense black pigment with felt-tip applicator. Smudge-proof and long-wearing formula. Creates perfect wings every time.", 
-        image: "eyeliner.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 14, 
-        name: "Pro Pigment Palette", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 39.99, 
-        originalPrice: 49.99, 
-        description: "28 warm tones eyeshadow palette", 
-        fullDescription: "Highly pigmented, blendable shadows with matte, shimmer, and metallic finishes. Long-wearing formula with minimal fallout.", 
-        image: "eyeshadow.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 15, 
-        name: "Foundation + Concealer", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 42.99, 
-        originalPrice: null, 
-        description: "Milan 2-in-1 Foundation + Concealer, Deep Beige", 
-        fullDescription: "Medium-to-full coverage foundation that lasts 16 hours. Oil-free formula with SPF 20. Available in 20 shades.", 
-        image: "foundation.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 16, 
-        name: "Dreamy Lip Gloss Set", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 24.99, 
-        originalPrice: null, 
-        description: "TVLV Lasting without decolorization lip gloss set", 
-        fullDescription: "Non-sticky gloss formula with vitamin E. Sheer to medium coverage with mirror-like shine. Available in clear, pink, and nude.", 
-        image: "lip-gloss.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 17, 
-        name: "Outrageous Mascara", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 24.99, 
-        originalPrice: 29.99, 
-        description: "400% volume + length, sulfate-free, non-smudge formula", 
-        fullDescription: "Buildable formula with conditioning fibers. Adds dramatic volume and length. Smudge-proof and long-wearing.", 
-        image: "mascara.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 18, 
-        name: "Setting Spray Matte Finish", 
-        category: "makeup", 
-        categoryDisplay: "Makeup", 
-        price: 29.99, 
-        originalPrice: 34.99, 
-        description: "Kylie Cosmetics setting spray with matte finish", 
-        fullDescription: "Fine mist that locks makeup in place for up to 16 hours. Alcohol-free with cooling sensation. Suitable for all skin types.", 
-        image: "setting-spray.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-
-    // HAIRCARE (10 products)
-    { 
-        id: 21, 
-        name: "Dry Shampoo", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 19.99, 
-        originalPrice: null, 
-        description: "Batiste Powder Dry Shampoo for volume", 
-        fullDescription: "Absorbs oil and adds volume instantly. Invisible formula with no white cast. Fresh, clean scent with natural ingredients.", 
-        image: "dry-shampoo.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 22, 
-        name: "Pistachio Hair Mask", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 34.99, 
-        originalPrice: 39.99, 
-        description: "Omega 3-6-9 enriched hair mask", 
-        fullDescription: "Rich mask with shea butter and coconut oil. Restores moisture and elasticity in 10 minutes. Color-safe and paraben-free.", 
-        image: "hair-mask.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 23, 
-        name: "Rosemary Essential Oil", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 32.99, 
-        originalPrice: null, 
-        description: "Maple Holistics rosemary oil for hair growth", 
-        fullDescription: "Blend of argan, jojoba, and marula oils. Tames frizz and adds incredible shine. Can be used on wet or dry hair.", 
-        image: "hair-oil.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 24, 
-        name: "Hair Growth Serum", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 42.99, 
-        originalPrice: 49.99, 
-        description: "Sefudun Hair Growth Serum with Biotin 5%", 
-        fullDescription: "Peptide-rich serum with biotin and caffeine. Promotes hair growth and reduces shedding. Non-greasy formula for scalp application.", 
-        image: "hair-serum.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 25, 
-        name: "Herbal Shampoo", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 28.99, 
-        originalPrice: 34.99, 
-        description: "Bioxcin Forte Herbal Shampoo for intensive hair loss", 
-        fullDescription: "Gentle cleansing shampoo with argan oil and keratin. Suitable for all hair types, especially color-treated hair. Paraben-free and silicone-free.", 
-        image: "shampoo.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 26, 
-        name: "Rosemary + Mint Scalp Scrub", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 29.99, 
-        originalPrice: 34.99, 
-        description: "Deep cleansing scalp scrub for itch relief", 
-        fullDescription: "Gentle physical exfoliant with sea salt and tea tree. Removes buildup and stimulates circulation. Leaves scalp feeling fresh and clean.", 
-        image: "scalp-scrub.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 27, 
-        name: "Heat Protectant Spray", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 24.99, 
-        originalPrice: null, 
-        description: "TRESemme heat protectant spray up to 450°F", 
-        fullDescription: "Lightweight spray that creates a protective barrier against heat styling. Adds shine and reduces frizz. Suitable for all hair types.", 
-        image: "heat-protectant.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-    { 
-        id: 28, 
-        name: "Leave-In Conditioner", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 26.99, 
-        originalPrice: 32.99, 
-        description: "Basi Leave In Conditioner", 
-        fullDescription: "Lightweight leave-in spray with UV protection. Detangles knots and prevents breakage. Adds shine without weighing hair down.", 
-        image: "leave-in.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 29, 
-        name: "Sea Salt Spray", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 27.99, 
-        originalPrice: null, 
-        description: "Forte Sea Salt Spray for texture", 
-        fullDescription: "Sea salt spray that adds texture and body. Flexible hold that doesn't leave hair crunchy. Ideal for creating effortless waves.", 
-        image: "texturizing-spray.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 30, 
-        name: "Conditioner", 
-        category: "haircare", 
-        categoryDisplay: "Haircare", 
-        price: 24.99, 
-        originalPrice: 29.99, 
-        description: "Nourishing conditioner for soft, manageable hair", 
-        fullDescription: "Hydrating conditioner that detangles and softens hair. Suitable for daily use.", 
-        image: "conditioner.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-
-    // FRAGRANCE (10 products)
-    { 
-        id: 31, 
-        name: "Oud Collection", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 65.99, 
-        originalPrice: 79.99, 
-        description: "Sweet Oud, Spiced Oud, Dark Oud, Royal Oud, Rose Oud", 
-        fullDescription: "Luxurious oud fragrance collection with various notes. Long-lasting and sophisticated.", 
-        image: "aromatherapy.jpg", 
-        badge: "Luxury", 
-        inStock: true 
-    },
-    { 
-        id: 32, 
-        name: "Citrus Body Mist", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 28.99, 
-        originalPrice: 34.99, 
-        description: "Fresh and energizing citrus perfume mist", 
-        fullDescription: "Light and refreshing body mist with notes of grapefruit, mandarin, and lemon. Perfect for everyday wear. Layerable and alcohol-free.", 
-        image: "citrus-mist.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 33, 
-        name: "Flowerbomb", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 89.99, 
-        originalPrice: 110.99, 
-        description: "Viktor&Rolf Flowerbomb Eau de Parfum", 
-        fullDescription: "Romantic floral fragrance with top notes of Italian bergamot, heart of rose and jasmine, and base of white musk. Long-lasting 8+ hours.", 
-        image: "floral-perfume.jpg", 
-        badge: "Luxury", 
-        inStock: true 
-    },
-    { 
-        id: 34, 
-        name: "BOSS Unlimited", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 58.99, 
-        originalPrice: null, 
-        description: "Hugo Boss men's cologne", 
-        fullDescription: "Sophisticated woody fragrance with top notes of bergamot, heart of cedarwood, and base of sandalwood and amber. Long-lasting and versatile.", 
-        image: "mens-cologne.jpg", 
-        badge: "Luxury", 
-        inStock: true 
-    },
-    { 
-        id: 35, 
-        name: "Vanilla Voyage", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 52.99, 
-        originalPrice: 62.99, 
-        description: "Maison Asrar Vanilla Voyage", 
-        fullDescription: "Gourmand fragrance with top notes of Italian bergamot, heart of vanilla orchid, and base of caramel and sandalwood. Long-lasting 6+ hours.", 
-        image: "vanilla-perfume.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 36, 
-        name: "Room & Linen Spray", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 19.99, 
-        originalPrice: 24.99, 
-        description: "Lily Joelles Room & Linen Spray", 
-        fullDescription: "Multi-purpose spray with notes of cotton, white flowers, and clean musk. Can be used on body, linens, or as room spray.", 
-        image: "linen-spray.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 37, 
-        name: "Palermo Body Oil", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 24.99, 
-        originalPrice: null, 
-        description: "Palermo Body perfume oil", 
-        fullDescription: "Concentrated perfume oil. Notes of vanilla, sandalwood, and musk. Alcohol-free and gentle on skin.", 
-        image: "perfume-oil.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 38, 
-        name: "Solid Perfume", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 22.99, 
-        originalPrice: 28.99, 
-        description: "EM5 Solid Perfume - Woody Oud, Nomade", 
-        fullDescription: "Wax-based solid perfume with notes of rose, jasmine, and sandalwood. Comes in beautiful compact for easy touch-ups throughout the day.", 
-        image: "solid-perfume.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 39, 
-        name: "Luxury Scent", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 16.99, 
-        originalPrice: null, 
-        description: "Luxury Scent Fine Perfume", 
-        fullDescription: "Lavender and chamomile essential oil blend. Perfect for relaxation.", 
-        image: "perfume-set.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 40, 
-        name: "The One Cologne", 
-        category: "fragrance", 
-        categoryDisplay: "Fragrance", 
-        price: 48.99, 
-        originalPrice: null, 
-        description: "Dolo&Ganbana The One cologne", 
-        fullDescription: "Masculine fragrance with top notes of sea salt and bergamot, heart of lavender, and base of cedar and musk. Perfect for daily wear.", 
-        image: "woody-cologne.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-
-    // NAIL CARE (10 products)
-    
-    { 
-        id: 42, 
-        name: "Nail Strengthener Treatment", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 14.50, 
-        originalPrice: null, 
-        description: "Fortifies weak and brittle nails", 
-        fullDescription: "Treatment formula with keratin and calcium that strengthens nails and prevents breakage. Use as base coat or alone.", 
-        image: "nail-strainghner.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-    { 
-        id: 43, 
-        name: "Cuticle Oil Pen", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 8.99, 
-        originalPrice: 11.99, 
-        description: "Nourishing oil for healthy cuticles", 
-        fullDescription: "Vitamin E and jojoba oil blend in convenient pen applicator. Hydrates cuticles and promotes nail health. Perfect for on-the-go.", 
-        image: "cuticle-oil.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 44, 
-        name: "Quick-Dry Top Coat", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 10.99, 
-        originalPrice: 13.99, 
-        description: "Seals color and dries in 60 seconds", 
-        fullDescription: "Fast-drying top coat that locks in color and adds brilliant shine. Prevents chipping and extends manicure life.", 
-        image: "top-coat.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 45, 
-        name: "Gel Effect Polish", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 15.99, 
-        originalPrice: 19.99, 
-        description: "Salon-quality shine without UV light", 
-        fullDescription: "Gel-effect polish that gives high-shine finish without needing UV lamp. Long-wearing formula that lasts up to 10 days.", 
-        image: "gel-polish.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 46, 
-        name: "Nail Art Kit", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 24.99, 
-        originalPrice: 29.99, 
-        description: "Complete set for creative nail designs", 
-        fullDescription: "Comprehensive nail art kit with dotting tools, brushes, rhinestones, and striping tape. Perfect for creating professional-looking nail art at home.", 
-        image: "nail-art.jpg", 
-        badge: "New", 
-        inStock: true 
-    },
-    { 
-        id: 47, 
-        name: "Matte Finish Top Coat", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 9.99, 
-        originalPrice: 12.99, 
-        description: "Transforms any polish to matte finish", 
-        fullDescription: "Matte top coat that gives any nail polish a sophisticated matte finish. Quick-drying and long-lasting.", 
-        image: "matte-top-coat.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 48, 
-        name: "Nail File & Buffer Set", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 7.99, 
-        originalPrice: null, 
-        description: "Professional-grade shaping tools", 
-        fullDescription: "Set includes 2 nail files and 1 buffer. Dual-grit files for shaping and smoothing. Buffer creates natural shine without polish.", 
-        image: "nail-file.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-    { 
-        id: 49, 
-        name: "Nail Polish Remover", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 6.99, 
-        originalPrice: 8.99, 
-        description: "Acetone-free, gentle formula", 
-        fullDescription: "Gentle, non-drying nail polish remover with vitamin E. Removes polish quickly without drying nails or cuticles. Acetone-free formula.", 
-        image: "polish-remover.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-    { 
-        id: 50, 
-        name: "Base Coat Primer", 
-        category: "nail", 
-        categoryDisplay: "Nail Care", 
-        price: 8.50, 
-        originalPrice: 10.99, 
-        description: "Protects nails and extends polish wear", 
-        fullDescription: "Strengthening base coat that smooths nail surface and prevents staining. Helps polish adhere better and last longer.", 
-        image: "base-coat.jpg", 
-        badge: "Essential", 
-        inStock: true 
-    },
-
-    // TOOLS (10 products) - Keeping original tools
-    { 
-        id: 51, 
-        name: "Jade Roller Set", 
-        category: "tools", 
-        categoryDisplay: "Beauty Tools", 
-        price: 29.99, 
-        originalPrice: null, 
-        description: "Reduces puffiness and boosts circulation.", 
-        fullDescription: "100% authentic jade roller set includes face roller and under-eye attachment. Helps with lymphatic drainage and product absorption.", 
-        image: "jade-roller.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 52, 
-        name: "Makeup Brush Set", 
-        category: "tools", 
-        categoryDisplay: "Beauty Tools", 
-        price: 39.99, 
-        originalPrice: 49.99, 
-        description: "10-piece set with synthetic bristles.", 
-        fullDescription: "Complete brush set includes foundation, powder, blush, eyeshadow, and blending brushes. Synthetic bristles are cruelty-free and easy to clean.", 
-        image: "brush-set.jpg", 
-        badge: "Bestseller", 
-        inStock: true 
-    },
-    { 
-        id: 53, 
-        name: "LED Light Therapy Mask", 
-        category: "tools", 
-        categoryDisplay: "Beauty Tools", 
-        price: 199.99, 
-        originalPrice: 249.99, 
-        description: "Anti-aging and acne treatment at home.", 
-        fullDescription: "Professional-grade LED mask with red and blue light therapy. Red light for anti-aging, blue light for acne. Hands-free design with remote control.", 
-        image: "led-mask.jpg", 
-        badge: "Luxury", 
-        inStock: true 
-    },
-    { 
-        id: 54, 
-        name: "Microdermabrasion Tool", 
-        category: "tools", 
-        categoryDisplay: "Beauty Tools", 
-        price: 79.99, 
-        originalPrice: 99.99, 
-        description: "Gentle exfoliation for smoother skin.", 
-        fullDescription: "At-home microdermabrasion device with diamond tip exfoliation. Includes multiple heads for different skin concerns. Rechargeable and waterproof.", 
-        image: "microderm.jpg", 
-        badge: "New", 
-        inStock: true 
+async function loadProductsFromFirebase() {
+    try {
+        console.log('🔄 Loading products from Firebase...');
+        const productsSnap = await getDocs(collection(db, "products"));
+        
+        if (productsSnap.empty) {
+            console.log('No products found in Firebase');
+            products = [];
+            return;
+        }
+        
+        // Convert Firebase docs to product objects
+        products = productsSnap.docs.map(doc => {
+            const data = doc.data();
+            
+            // Map Firebase fields to your expected format
+            return {
+                id: doc.id, // Use Firebase document ID
+                name: data.name || data.title || 'Unnamed Product',
+                category: data.category || 'skincare',
+                categoryDisplay: data.categoryDisplay || data.category || 'Skincare',
+                price: data.price || 0,
+                originalPrice: data.originalPrice || null,
+                description: data.description || data.shortDescription || 'No description',
+                fullDescription: data.fullDescription || data.description || 'No description',
+                image: data.image || data.imageUrl || 'placeholder.jpg',
+                badge: data.badge || data.tag || null,
+                inStock: data.inStock !== false,
+                icon: data.icon || getCategoryIcon(data.category)
+            };
+        });
+        
+        console.log(`✅ Loaded ${products.length} products from Firebase`);
+        
+        // Re-render products
+        const activeCategory = document.querySelector('.category-tab.active')?.dataset.category || 'all';
+        loadProducts(activeCategory);
+        
+    } catch (error) {
+        console.error('❌ Error loading products from Firebase:', error);
+        // Show error message to user
+        const productsGrid = document.getElementById('products-grid');
+        if (productsGrid) {
+            productsGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: var(--danger); margin-bottom: 20px;"></i>
+                    <h3>Error Loading Products</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadProductsFromFirebase()" class="btn-primary" style="margin-top: 20px;">
+                        <i class="fas fa-sync"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
     }
-];
+}
 
         // Cart array
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -3419,11 +2825,33 @@ const products = [
             return icons[category] || 'fa-tag';
         }
 
-        window.filterProducts = function(category) {
-            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            loadProducts(category);
-        };
+window.filterProducts = function(category) {
+    // Update active tab
+    document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Filter and load products
+    loadProducts(category);
+};
+
+function loadProducts(category = 'all') {
+    if (!productsGrid) return;
+    
+    let filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+    
+    if (filteredProducts.length === 0) {
+        productsGrid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                <i class="fas fa-box-open" style="font-size: 50px; opacity: 0.3; margin-bottom: 20px;"></i>
+                <h3>No products in this category</h3>
+                <p>Check back soon for new arrivals!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    productsGrid.innerHTML = filteredProducts.map(product => createProductCard(product)).join('');
+}
 
         window.addToCart = function(productId) {
             const product = products.find(p => p.id === productId);
@@ -3533,10 +2961,19 @@ window.editProductFromHome = function(productId) {
             document.getElementById('productModal').classList.remove('active');
         };
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadProducts('all');
-            updateCartCount();
-        });
+       document.addEventListener('DOMContentLoaded', async function() {
+    // Load products from Firebase first
+    await loadProductsFromFirebase();
+    updateCartCount();
+    
+    // Initialize bundle builder
+    if (agingValue) agingValue.textContent = 'Medium';
+    if (acneValue) acneValue.textContent = 'Medium';
+    if (pigmentValue) pigmentValue.textContent = 'High';
+    if (hydrationValue) hydrationValue.textContent = 'Medium';
+    if (sensitivityValue) sensitivityValue.textContent = 'Medium';
+    renderBundlePreview();
+});
 
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
@@ -4028,8 +3465,8 @@ onAuthStateChanged(auth, async (user) => {
     let searchResults = [];
     let selectedResultIndex = -1;
     
-    // Product database (using your existing products array)
-    const searchProducts = products;
+// Search uses the products array loaded from Firebase
+// No need for separate declaration - it will use the global 'products' variable    const searchProducts = products;
     
     // Toggle search overlay
     window.toggleSearch = function() {
