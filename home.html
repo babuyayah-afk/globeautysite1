@@ -2644,680 +2644,14 @@
         </div>
     </footer>
     
-    <script>
-        // ===== CATEGORY SLIDER FUNCTIONALITY =====
-        const categoryMarkers = document.querySelectorAll('.category-marker');
-        const categoryDetails = document.querySelectorAll('.category-details');
-        
-        categoryMarkers.forEach(marker => {
-            marker.addEventListener('click', () => {
-                const category = marker.getAttribute('data-category');
-                
-                categoryMarkers.forEach(m => m.classList.remove('active'));
-                categoryDetails.forEach(d => d.classList.remove('active'));
-                
-                marker.classList.add('active');
-                document.getElementById(`category-${category}-details`).classList.add('active');
-            });
-        });
-        
-        // Smooth Scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if(targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if(targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-        
-// ===== LOAD PRODUCTS FROM FIREBASE =====
-let products = []; // Will be populated from Firebase
-
-async function loadProductsFromFirebase() {
-    try {
-        console.log('🔄 Loading products from Firebase...');
-        const productsSnap = await getDocs(collection(db, "products"));
-        
-        if (productsSnap.empty) {
-            console.log('No products found in Firebase');
-            products = [];
-            return;
-        }
-        
-        // Convert Firebase docs to product objects
-        products = productsSnap.docs.map(doc => {
-            const data = doc.data();
-            
-            // Map Firebase fields to your expected format
-            return {
-                id: doc.id, // Use Firebase document ID
-                name: data.name || data.title || 'Unnamed Product',
-                category: data.category || 'skincare',
-                categoryDisplay: data.categoryDisplay || data.category || 'Skincare',
-                price: data.price || 0,
-                originalPrice: data.originalPrice || null,
-                description: data.description || data.shortDescription || 'No description',
-                fullDescription: data.fullDescription || data.description || 'No description',
-                image: data.image || data.imageUrl || 'placeholder.jpg',
-                badge: data.badge || data.tag || null,
-                inStock: data.inStock !== false,
-                icon: data.icon || getCategoryIcon(data.category)
-            };
-        });
-        
-        console.log(`✅ Loaded ${products.length} products from Firebase`);
-        
-        // Re-render products
-        const activeCategory = document.querySelector('.category-tab.active')?.dataset.category || 'all';
-        loadProducts(activeCategory);
-        
-    } catch (error) {
-        console.error('❌ Error loading products from Firebase:', error);
-        // Show error message to user
-        const productsGrid = document.getElementById('products-grid');
-        if (productsGrid) {
-            productsGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: var(--danger); margin-bottom: 20px;"></i>
-                    <h3>Error Loading Products</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadProductsFromFirebase()" class="btn-primary" style="margin-top: 20px;">
-                        <i class="fas fa-sync"></i> Try Again
-                    </button>
-                </div>
-            `;
-        }
-    }
-}
-
-        // Cart array
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const KSH_CONVERSION = 130;
-
-        function toKSH(usd) {
-            return Math.round(usd * KSH_CONVERSION);
-        }
-
-        // DOM Elements
-        const productsGrid = document.getElementById('products-grid');
-        const cartNotification = document.createElement('div');
-        cartNotification.className = 'cart-notification';
-        document.body.appendChild(cartNotification);
-
-        function loadProducts(category = 'all') {
-            if (!productsGrid) return;
-            
-            let filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
-            productsGrid.innerHTML = '';
-            filteredProducts.forEach(product => {
-                productsGrid.innerHTML += createProductCard(product);
-            });
-        }
-
-  function createProductCard(product) {
-    const discount = product.originalPrice ? `<span>KSh ${toKSH(product.originalPrice).toLocaleString()}</span>` : '';
-    const badge = product.badge ? `<div class="product-badge">${product.badge}</div>` : '';
-    const kshPrice = toKSH(product.price).toLocaleString();
-    
-    // 👇 Check if user is admin (you'll need to pass this from your auth system)
-    const isAdmin = window.isAdmin || false;
-    
-    // 👇 Check if product is from admin (has a Firestore ID that's not a number)
-    const isAdminAdded = typeof product.id === 'string' && product.id.length > 10;
-    
-    // 👇 Only show edit button if user is admin AND product is admin-added
-    const editButton = (isAdmin && isAdminAdded) ? 
-        `<button class="btn-edit-product" onclick="editProductFromHome('${product.id}')" title="Edit Product">
-            <i class="fas fa-edit"></i>
-        </button>` : '';
-    
-    return `
-        <div class="product-card" data-product-id="${product.id}">
-            ${badge}
-            <button class="btn-inquiry" onclick="inquiryProduct(${product.id})" title="Ask about this product">
-                <i class="fas fa-question"></i>
-            </button>
-            ${editButton}  <!-- 👈 Edit button appears here -->
-            <div class="product-image">
-                <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
-            </div>
-            <div class="product-category">
-                <i class="fas ${getCategoryIcon(product.category)}"></i> ${product.categoryDisplay}
-            </div>
-            <h3 class="product-title">${product.name}</h3>
-            <p class="product-description">${product.description}</p>
-            <div class="product-price-row">
-                <div class="product-price">
-                    KSh ${kshPrice}
-                    ${product.originalPrice ? `<span>KSh ${toKSH(product.originalPrice).toLocaleString()}</span>` : ''}
-                </div>
-            </div>
-            <div class="product-actions">
-                <button class="btn-add-to-cart" onclick="addToCart(${product.id})">
-                    <i class="fas fa-shopping-cart"></i> Add to Cart
-                </button>
-                <button class="btn-more-info" onclick="showProductInfo(${product.id})">
-                    <i class="fas fa-info-circle"></i> Info
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-        function getCategoryIcon(category) {
-            const icons = { 
-                skincare: 'fa-spa', 
-                makeup: 'fa-paint-brush', 
-                haircare: 'fa-hand-holding-heart', 
-                fragrance: 'fa-feather-alt', 
-                tools: 'fa-bolt',
-                nail: 'fa-hand-paper'
-            };
-            return icons[category] || 'fa-tag';
-        }
-
-window.filterProducts = function(category) {
-    // Update active tab
-    document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    // Filter and load products
-    loadProducts(category);
-};
-
-function loadProducts(category = 'all') {
-    if (!productsGrid) return;
-    
-    let filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
-    
-    if (filteredProducts.length === 0) {
-        productsGrid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
-                <i class="fas fa-box-open" style="font-size: 50px; opacity: 0.3; margin-bottom: 20px;"></i>
-                <h3>No products in this category</h3>
-                <p>Check back soon for new arrivals!</p>
-            </div>
-        `;
-        return;
-    }
-    
-    productsGrid.innerHTML = filteredProducts.map(product => createProductCard(product)).join('');
-}
-
-        window.addToCart = function(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-            
-            const existingItem = cart.find(item => item.id === productId);
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ id: product.id, name: product.name, price: product.price, icon: product.icon, quantity: 1 });
-            }
-            
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            showCartNotification(`${product.name} added to cart!`);
-        };
-
-        function updateCartCount() {
-            const cartCount = document.querySelector('.cart-count');
-            if (cartCount) {
-                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-                cartCount.textContent = totalItems;
-            }
-        }
-
-        function showCartNotification(message) {
-            cartNotification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            cartNotification.classList.add('show');
-            setTimeout(() => cartNotification.classList.remove('show'), 3000);
-        }
-
-        window.inquiryProduct = function(productId) {
-            const product = products.find(p => p.id === productId);
-            if (product) {
-                const subject = encodeURIComponent(`Inquiry about: ${product.name}`);
-                const body = encodeURIComponent(`Hello,\n\nI'm interested in learning more about the ${product.name}.\n\nQuestions:\n- Is this in stock?\n- What skin types is it suitable for?\n- Any patch test recommendations?\n\nThank you!`);
-                window.location.href = `mailto:hello@globeauty.com?subject=${subject}&body=${body}`;
-            }
-        };
-// Edit product from home page (admin only)
-window.editProductFromHome = function(productId) {
-    // Double-check admin status
-    if (!window.isAdmin) {
-        alert('You do not have permission to edit products.');
-        return;
-    }
-    
-    // Confirm before redirecting
-    if (confirm('Edit this product? You will be redirected to the admin dashboard.')) {
-        // Redirect to admin dashboard with the product ID
-        window.location.href = `admin-dashboard.html?editProduct=${productId}`;
-    }
-};
-     window.showProductInfo = function(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-    
-    const modal = document.getElementById('productModal');
-    const modalContent = document.getElementById('productModalContent');
-    
-    modalContent.innerHTML = `
-        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px; text-align: center;">
-                <div style="background: var(--hover-bg); padding: 0; border-radius: 20px; overflow: hidden;">
-                    <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 250px; object-fit: cover;">
-                </div>
-            </div>
-            <div style="flex: 2;">
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <span style="background: var(--primary); color: white; padding: 6px 18px; border-radius: 30px; font-size: 14px; font-weight: 600;">
-                        ${product.categoryDisplay}
-                    </span>
-                    ${product.badge ? `<span style="background: var(--secondary); color: white; padding: 6px 18px; border-radius: 30px; font-size: 14px; font-weight: 600;">
-                        ${product.badge}
-                    </span>` : ''}
-                </div>
-                
-                <h2 style="font-size: 32px; margin-bottom: 15px; color: var(--text);">${product.name}</h2>
-                
-                <div style="margin-bottom: 25px;">
-                    <span style="font-size: 36px; font-weight: 800; color: var(--secondary);">KSh ${toKSH(product.price).toLocaleString()}</span>
-                    ${product.originalPrice ? `<span style="font-size: 20px; color: var(--text); opacity: 0.5; text-decoration: line-through; margin-left: 15px;">KSh ${toKSH(product.originalPrice).toLocaleString()}</span>` : ''}
-                </div>
-                
-                <div style="background: var(--hover-bg); padding: 25px; border-radius: 20px; margin-bottom: 25px;">
-                    <h4 style="font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: var(--text);">
-                        <i class="fas fa-info-circle"></i> Product Details
-                    </h4>
-                    <p style="font-size: 16px; line-height: 1.8; color: var(--text); opacity: 0.8;">${product.fullDescription}</p>
-                </div>
-                
-                <div style="display: flex; gap: 15px;">
-                    <button onclick="addToCart(${product.id})" style="flex: 2; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 16px 30px; border-radius: 50px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
-                        <i class="fas fa-shopping-cart"></i> Add to Cart
-                    </button>
-                    <button onclick="inquiryProduct(${product.id})" style="flex: 1; background: var(--card-bg); border: 2px solid var(--primary); color: var(--primary); padding: 16px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
-                        <i class="fas fa-question-circle"></i> Ask
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    modal.classList.add('active');
-};
-        window.closeProductModal = function() {
-            document.getElementById('productModal').classList.remove('active');
-        };
-
-       document.addEventListener('DOMContentLoaded', async function() {
-    // Load products from Firebase first
-    await loadProductsFromFirebase();
-    updateCartCount();
-    
-    // Initialize bundle builder
-    if (agingValue) agingValue.textContent = 'Medium';
-    if (acneValue) acneValue.textContent = 'Medium';
-    if (pigmentValue) pigmentValue.textContent = 'High';
-    if (hydrationValue) hydrationValue.textContent = 'Medium';
-    if (sensitivityValue) sensitivityValue.textContent = 'Medium';
-    renderBundlePreview();
-});
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('productModal');
-            if (event.target === modal) {
-                modal.classList.remove('active');
-            }
-        };
-
-        function scrollToCategory(category) {
-            setTimeout(() => {
-                const explorerSection = document.getElementById('categories');
-                if (explorerSection) {
-                    explorerSection.scrollIntoView({ behavior: 'smooth' });
-                    const categoryMarkers = document.querySelectorAll('.category-marker');
-                    categoryMarkers.forEach(marker => {
-                        if (marker.getAttribute('data-category') === category) {
-                            marker.click();
-                        }
-                    });
-                }
-            }, 100);
-        }
-        window.scrollToCategory = scrollToCategory;
-
-        function bookConsultation(expertName) {
-            const currentUser = localStorage.getItem('gloBeauty_currentUser');
-            if (currentUser) {
-                const user = JSON.parse(currentUser);
-                alert(`✅ Booking consultation with ${expertName}\n\nWe'll send a confirmation to ${user.phone || user.email}\n\nThis feature is coming soon!`);
-            } else {
-                if (confirm('Please sign in to book consultations. Go to login page?')) {
-                    window.location.href = 'index.html';
-                }
-            }
-        }
-        window.bookConsultation = bookConsultation;
-
-        // ===== BEAUTY BUNDLE BUILDER =====
-        const bundleProducts = {
-            'dry': [
-                { id: 'b1', name: 'Hyaluronic Acid Serum', price: 42.99, icon: 'fa-droplet', concerns: ['hydration', 'aging'], preferences: ['clean', 'vegan', 'fragrance-free'], desc: 'Deep hydration for dry skin' },
-                { id: 'b2', name: 'Rich Moisture Cream', price: 38.50, icon: 'fa-cream', concerns: ['hydration', 'sensitivity'], preferences: ['clean', 'organic', 'fragrance-free'], desc: 'Intense nourishment' },
-                { id: 'b3', name: 'Gentle Milk Cleanser', price: 24.99, icon: 'fa-soap', concerns: ['sensitivity'], preferences: ['clean', 'fragrance-free', 'cruelty-free'], desc: 'Non-stripping formula' }
-            ],
-            'oily': [
-                { id: 'b4', name: 'Niacinamide Serum', price: 39.99, icon: 'fa-droplet', concerns: ['acne', 'pigment'], preferences: ['clean', 'vegan', 'fragrance-free'], desc: 'Controls oil and minimizes pores' },
-                { id: 'b5', name: 'Gel Moisturizer', price: 32.50, icon: 'fa-cream', concerns: ['hydration', 'acne'], preferences: ['clean', 'fragrance-free'], desc: 'Oil-free hydration' }
-            ],
-            'combination': [
-                { id: 'b6', name: 'Balancing Toner', price: 28.99, icon: 'fa-spray-can', concerns: ['acne', 'hydration'], preferences: ['clean', 'cruelty-free'], desc: 'Hydrates without greasiness' }
-            ],
-            'sensitive': [
-                { id: 'b7', name: 'Barrier Repair Cream', price: 44.99, icon: 'fa-shield', concerns: ['sensitivity', 'hydration'], preferences: ['fragrance-free', 'clean'], desc: 'Calms and soothes irritation' }
-            ],
-            'normal': [
-                { id: 'b8', name: 'Vitamin C Brightening Serum', price: 45.99, icon: 'fa-sun', concerns: ['aging', 'pigment'], preferences: ['clean', 'vegan'], desc: 'Brightens and protects' }
-            ]
-        };
-
-        let skinType = 'dry';
-        let skinTypeLabel = 'Dry';
-        let preference = 'clean';
-        let agingVal = 3, acneVal = 3, pigmentVal = 4, hydrationVal = 3, sensitivityVal = 3;
-
-        const skinTypeChips = document.querySelectorAll('#skin-type-chips .chip');
-        const preferenceCards = document.querySelectorAll('#preference-grid .theme-card');
-        const agingSlider = document.getElementById('aging-slider');
-        const acneSlider = document.getElementById('acne-slider');
-        const pigmentSlider = document.getElementById('pigment-slider');
-        const hydrationSlider = document.getElementById('hydration-slider');
-        const sensitivitySlider = document.getElementById('sensitivity-slider');
-        const agingValue = document.getElementById('aging-value');
-        const acneValue = document.getElementById('acne-value');
-        const pigmentValue = document.getElementById('pigment-value');
-        const hydrationValue = document.getElementById('hydration-value');
-        const sensitivityValue = document.getElementById('sensitivity-value');
-        const bundleTitle = document.getElementById('bundle-title-display');
-        const bundlePreference = document.getElementById('bundle-preference-display');
-        const bundleItemsContainer = document.getElementById('bundle-items-container');
-        const bundleSubtotal = document.getElementById('bundle-subtotal');
-        const bundlePriceTag = document.getElementById('bundle-price-tag');
-        const bundleDiscount = document.getElementById('bundle-discount');
-        const discountRow = document.getElementById('discount-row');
-        const freeGiftBadge = document.getElementById('free-gift-badge');
-        const expertNote = document.getElementById('expert-note');
-        const resetBtn = document.getElementById('reset-bundle-btn');
-        const addBundleBtn = document.getElementById('add-bundle-to-cart');
-        const saveBundleBtn = document.getElementById('save-bundle-to-profile');
-
-        function getConcernLevel(val) {
-            return val <= 2 ? 'Low' : val === 3 ? 'Medium' : 'High';
-        }
-
-        function getPreferenceInfo(pref) {
-            const map = {
-                'clean': { icon: 'fa-leaf', name: 'Clean Beauty' },
-                'luxury': { icon: 'fa-crown', name: 'Luxury' },
-                'vegan': { icon: 'fa-seedling', name: 'Vegan' },
-                'cruelty-free': { icon: 'fa-rabbit', name: 'Cruelty-Free' },
-                'fragrance-free': { icon: 'fa-wind', name: 'Fragrance-Free' },
-                'organic': { icon: 'fa-apple-alt', name: 'Organic' },
-                'k-beauty': { icon: 'fa-fan', name: 'K-Beauty' },
-                'clinical': { icon: 'fa-flask', name: 'Clinical' }
-            };
-            return map[pref] || { icon: 'fa-leaf', name: 'Clean Beauty' };
-        }
-
-        function generateBundleItems() {
-            const pool = bundleProducts[skinType] || [];
-            const scored = pool.map(item => {
-                let score = 0;
-                if (item.concerns.includes('aging')) score += agingVal * 3;
-                if (item.concerns.includes('acne')) score += acneVal * 3;
-                if (item.concerns.includes('pigment')) score += pigmentVal * 3;
-                if (item.concerns.includes('hydration')) score += hydrationVal * 3;
-                if (item.concerns.includes('sensitivity')) score += sensitivityVal * 3;
-                if (item.preferences.includes(preference)) score += 20;
-                return { ...item, score };
-            });
-            scored.sort((a, b) => b.score - a.score);
-            return scored.slice(0, 4);
-        }
-
-        function getTopConcerns() {
-            const concerns = [];
-            if (agingVal >= 4) concerns.push('anti-aging');
-            if (acneVal >= 4) concerns.push('acne control');
-            if (pigmentVal >= 4) concerns.push('brightening');
-            if (hydrationVal >= 4) concerns.push('hydration');
-            if (sensitivityVal >= 4) concerns.push('soothing');
-            if (concerns.length === 0) return 'balanced';
-            if (concerns.length === 1) return concerns[0];
-            if (concerns.length === 2) return concerns.join(' and ');
-            return concerns.slice(0, -1).join(', ') + ', and ' + concerns.slice(-1);
-        }
-
-        function renderBundlePreview() {
-            if (!bundleTitle || !bundlePreference || !bundleItemsContainer) return;
-            
-            bundleTitle.textContent = skinTypeLabel + ' Skin Essentials';
-            const prefInfo = getPreferenceInfo(preference);
-            bundlePreference.innerHTML = `<i class="fas ${prefInfo.icon}"></i> ${prefInfo.name}`;
-            
-            const items = generateBundleItems();
-            let subtotal = 0;
-            let itemsHtml = '';
-            
-            items.forEach(item => {
-                subtotal += item.price;
-                itemsHtml += `
-                    <div class="bundle-item">
-                        <i class="fas ${item.icon}"></i>
-                        <span>${item.name}</span>
-                        <span style="font-weight: 700;">KSh ${Math.round(item.price * 130).toLocaleString()}</span>
-                    </div>
-                `;
-            });
-            
-            bundleItemsContainer.innerHTML = itemsHtml;
-            
-            const subtotalKsh = Math.round(subtotal * 130);
-            const shippingKsh = 150;
-            let totalKsh = subtotalKsh + shippingKsh;
-            let discountKsh = 0;
-            
-            if (items.some(item => item.price * 130 >= 500)) {
-                discountKsh = Math.round(subtotalKsh * 0.1);
-                totalKsh = subtotalKsh - discountKsh + shippingKsh;
-                if (discountRow) discountRow.style.display = 'flex';
-                if (bundleDiscount) bundleDiscount.textContent = `-KSh ${discountKsh.toLocaleString()}`;
-            } else {
-                if (discountRow) discountRow.style.display = 'none';
-            }
-            
-            if (freeGiftBadge) {
-                freeGiftBadge.style.display = items.length >= 4 ? 'flex' : 'none';
-            }
-            
-            if (bundleSubtotal) bundleSubtotal.textContent = `KSh ${subtotalKsh.toLocaleString()}`;
-            if (bundlePriceTag) bundlePriceTag.textContent = `KSh ${totalKsh.toLocaleString()}`;
-            
-            if (expertNote) {
-                const topConcerns = getTopConcerns();
-                expertNote.innerHTML = `<i class="fas fa-lightbulb"></i> <strong>Beauty tip:</strong> This bundle focuses on <strong>${topConcerns}</strong> for ${skinTypeLabel} skin.`;
-            }
-        }
-
-        if (skinTypeChips.length > 0) {
-            skinTypeChips.forEach(chip => {
-                chip.addEventListener('click', function() {
-                    skinTypeChips.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    skinType = this.dataset.skin;
-                    skinTypeLabel = this.dataset.label;
-                    renderBundlePreview();
-                });
-            });
-        }
-
-        if (preferenceCards.length > 0) {
-            preferenceCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    preferenceCards.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    preference = this.dataset.preference;
-                    renderBundlePreview();
-                });
-            });
-        }
-
-        if (agingSlider) {
-            agingSlider.addEventListener('input', function() {
-                agingVal = parseInt(this.value);
-                if (agingValue) agingValue.textContent = getConcernLevel(agingVal);
-                renderBundlePreview();
-            });
-        }
-
-        if (acneSlider) {
-            acneSlider.addEventListener('input', function() {
-                acneVal = parseInt(this.value);
-                if (acneValue) acneValue.textContent = getConcernLevel(acneVal);
-                renderBundlePreview();
-            });
-        }
-
-        if (pigmentSlider) {
-            pigmentSlider.addEventListener('input', function() {
-                pigmentVal = parseInt(this.value);
-                if (pigmentValue) pigmentValue.textContent = getConcernLevel(pigmentVal);
-                renderBundlePreview();
-            });
-        }
-
-        if (hydrationSlider) {
-            hydrationSlider.addEventListener('input', function() {
-                hydrationVal = parseInt(this.value);
-                if (hydrationValue) hydrationValue.textContent = getConcernLevel(hydrationVal);
-                renderBundlePreview();
-            });
-        }
-
-        if (sensitivitySlider) {
-            sensitivitySlider.addEventListener('input', function() {
-                sensitivityVal = parseInt(this.value);
-                if (sensitivityValue) sensitivityValue.textContent = getConcernLevel(sensitivityVal);
-                renderBundlePreview();
-            });
-        }
-
-        if (resetBtn) {
-            resetBtn.addEventListener('click', function() {
-                if (skinTypeChips.length > 0) {
-                    skinTypeChips.forEach((chip, index) => {
-                        if (index === 0) chip.classList.add('selected');
-                        else chip.classList.remove('selected');
-                    });
-                }
-                skinType = 'dry';
-                skinTypeLabel = 'Dry';
-                
-                if (agingSlider) agingSlider.value = 3;
-                if (acneSlider) acneSlider.value = 3;
-                if (pigmentSlider) pigmentSlider.value = 4;
-                if (hydrationSlider) hydrationSlider.value = 3;
-                if (sensitivitySlider) sensitivitySlider.value = 3;
-                
-                agingVal = 3; acneVal = 3; pigmentVal = 4; hydrationVal = 3; sensitivityVal = 3;
-                
-                if (agingValue) agingValue.textContent = 'Medium';
-                if (acneValue) acneValue.textContent = 'Medium';
-                if (pigmentValue) pigmentValue.textContent = 'High';
-                if (hydrationValue) hydrationValue.textContent = 'Medium';
-                if (sensitivityValue) sensitivityValue.textContent = 'Medium';
-                
-                if (preferenceCards.length > 0) {
-                    preferenceCards.forEach(card => {
-                        card.classList.remove('selected');
-                        if (card.dataset.preference === 'clean') {
-                            card.classList.add('selected');
-                        }
-                    });
-                }
-                preference = 'clean';
-                
-                renderBundlePreview();
-            });
-        }
-
-        if (addBundleBtn) {
-            addBundleBtn.addEventListener('click', function() {
-                const items = generateBundleItems();
-                let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                
-                items.forEach(item => {
-                    cart.push({
-                        id: item.id || Date.now() + Math.random(),
-                        name: item.name,
-                        price: item.price,
-                        quantity: 1,
-                        icon: item.icon
-                    });
-                });
-                
-                localStorage.setItem('cart', JSON.stringify(cart));
-                
-                const cartCount = document.querySelector('.cart-count');
-                if (cartCount) {
-                    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-                    cartCount.textContent = totalItems;
-                }
-                
-                alert('✅ Beauty bundle added to your cart!');
-            });
-        }
-
-        if (saveBundleBtn) {
-            saveBundleBtn.addEventListener('click', function() {
-                if (typeof auth !== 'undefined' && auth.currentUser) {
-                    alert('✅ Bundle saved to your profile!');
-                } else {
-                    if (confirm('Please sign in to save to your profile. Go to login page?')) {
-                        window.location.href = 'index.html';
-                    }
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            if (agingValue) agingValue.textContent = 'Medium';
-            if (acneValue) acneValue.textContent = 'Medium';
-            if (pigmentValue) pigmentValue.textContent = 'High';
-            if (hydrationValue) hydrationValue.textContent = 'Medium';
-            if (sensitivityValue) sensitivityValue.textContent = 'Medium';
-            renderBundlePreview();
-        });
-    </script>
-// ===== FIREBASE SETUP =====
-<script type="module">
+    <script type="module">
+    // ===== FIREBASE IMPORTS =====
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
 
+    // ===== FIREBASE CONFIG =====
     const firebaseConfig = {
         apiKey: "AIzaSyAmL_Mv9YJM72FC2LLDvdluOUXUmMxQjc8",
         authDomain: "littleexplorers-kenya.firebaseapp.com",
@@ -3327,148 +2661,708 @@ window.editProductFromHome = function(productId) {
         appId: "1:737872854301:web:18b6e0d163ddb9c2f5b5f4"
     };
 
+    // ===== INITIALIZE FIREBASE =====
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const analytics = getAnalytics(app);
 
-    // 🚫 REMOVED: Hardcoded admin emails
-    // const ADMIN_EMAILS = ['babuyayah@gmail.com', 'admin@globeauty.com'];
+    // ===== GLOBAL VARIABLES =====
+    let products = [];
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const KSH_CONVERSION = 130;
 
-onAuthStateChanged(auth, async (user) => {
-    const adminNavItem = document.getElementById('adminNavItem');
-    const accountBtn = document.getElementById('accountBtn');
+    // ===== CATEGORY SLIDER FUNCTIONALITY =====
+    const categoryMarkers = document.querySelectorAll('.category-marker');
+    const categoryDetails = document.querySelectorAll('.category-details');
     
-    if (user) {
-        console.log('User logged in:', user.email);
+    categoryMarkers.forEach(marker => {
+        marker.addEventListener('click', () => {
+            const category = marker.getAttribute('data-category');
+            
+            categoryMarkers.forEach(m => m.classList.remove('active'));
+            categoryDetails.forEach(d => d.classList.remove('active'));
+            
+            marker.classList.add('active');
+            document.getElementById(`category-${category}-details`).classList.add('active');
+        });
+    });
+    
+    // Smooth Scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            if(targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if(targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // ===== LOAD PRODUCTS FROM FIREBASE =====
+    async function loadProductsFromFirebase() {
+        try {
+            console.log('🔄 Loading products from Firebase...');
+            const productsGrid = document.getElementById('products-grid');
+            
+            if (!productsGrid) return;
+            
+            // Show loading spinner
+            productsGrid.innerHTML = `
+                <div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                    <div class="spinner" style="width: 50px; height: 50px; border: 5px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                    <p>Loading beauty products...</p>
+                </div>
+            `;
+            
+            const productsSnap = await getDocs(collection(db, "products"));
+            
+            if (productsSnap.empty) {
+                console.log('No products found in Firebase');
+                products = [];
+                productsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                        <i class="fas fa-box-open" style="font-size: 50px; opacity: 0.3; margin-bottom: 20px;"></i>
+                        <h3>No products yet</h3>
+                        <p>Check back soon for new arrivals!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Convert Firebase docs to product objects
+            products = productsSnap.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    name: data.name || data.title || 'Unnamed Product',
+                    category: data.category || 'skincare',
+                    categoryDisplay: data.categoryDisplay || data.category || 'Skincare',
+                    price: data.price || 0,
+                    originalPrice: data.originalPrice || null,
+                    description: data.description || data.shortDescription || 'No description',
+                    fullDescription: data.fullDescription || data.description || 'No description',
+                    image: data.image || data.imageUrl || 'placeholder.jpg',
+                    badge: data.badge || data.tag || null,
+                    inStock: data.inStock !== false,
+                    icon: data.icon || getCategoryIcon(data.category)
+                };
+            });
+            
+            console.log(`✅ Loaded ${products.length} products from Firebase`);
+            
+            // Re-render products
+            const activeCategory = document.querySelector('.category-tab.active')?.dataset.category || 'all';
+            loadProducts(activeCategory);
+            
+        } catch (error) {
+            console.error('❌ Error loading products:', error);
+            const productsGrid = document.getElementById('products-grid');
+            if (productsGrid) {
+                productsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: var(--danger); margin-bottom: 20px;"></i>
+                        <h3>Error Loading Products</h3>
+                        <p>${error.message}</p>
+                        <button onclick="window.location.reload()" style="margin-top: 20px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 30px; cursor: pointer;">
+                            <i class="fas fa-sync"></i> Refresh Page
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // ===== HELPER FUNCTIONS =====
+    function getCategoryIcon(category) {
+        const icons = { 
+            skincare: 'fa-spa', 
+            makeup: 'fa-paint-brush', 
+            haircare: 'fa-hand-holding-heart', 
+            fragrance: 'fa-feather-alt', 
+            tools: 'fa-bolt',
+            nail: 'fa-hand-paper'
+        };
+        return icons[category] || 'fa-tag';
+    }
+
+    function toKSH(usd) {
+        return Math.round(usd * KSH_CONVERSION);
+    }
+
+    function createProductCard(product) {
+        const badge = product.badge ? `<div class="product-badge">${product.badge}</div>` : '';
+        const kshPrice = toKSH(product.price).toLocaleString();
+        const originalPriceHTML = product.originalPrice ? `<span>KSh ${toKSH(product.originalPrice).toLocaleString()}</span>` : '';
         
-        // Update account button
-        if (accountBtn) {
-            accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.email.split('@')[0]}`;
-            accountBtn.href = "#";
-            accountBtn.onclick = (e) => {
-                e.preventDefault();
-                if (confirm('Logout from GloBeauty?')) {
-                    signOut(auth).then(() => {
-                        localStorage.removeItem('gloBeauty_currentUser');
-                        window.location.href = 'index.html';
-                    });
-                }
-            };
+        const isAdmin = window.isAdmin || false;
+        const isAdminAdded = typeof product.id === 'string' && product.id.length > 10;
+        const editButton = (isAdmin && isAdminAdded) ? 
+            `<button class="btn-edit-product" onclick="window.editProductFromHome('${product.id}')" title="Edit Product">
+                <i class="fas fa-edit"></i>
+            </button>` : '';
+        
+        return `
+            <div class="product-card" data-product-id="${product.id}">
+                ${badge}
+                <button class="btn-inquiry" onclick="window.inquiryProduct('${product.id}')" title="Ask about this product">
+                    <i class="fas fa-question"></i>
+                </button>
+                ${editButton}
+                <div class="product-image">
+                    <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
+                </div>
+                <div class="product-category">
+                    <i class="fas ${getCategoryIcon(product.category)}"></i> ${product.categoryDisplay}
+                </div>
+                <h3 class="product-title">${product.name}</h3>
+                <p class="product-description">${product.description}</p>
+                <div class="product-price-row">
+                    <div class="product-price">
+                        KSh ${kshPrice}
+                        ${originalPriceHTML}
+                    </div>
+                </div>
+                <div class="product-actions">
+                    <button class="btn-add-to-cart" onclick="window.addToCart('${product.id}')">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <button class="btn-more-info" onclick="window.showProductInfo('${product.id}')">
+                        <i class="fas fa-info-circle"></i> Info
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function loadProducts(category = 'all') {
+        const productsGrid = document.getElementById('products-grid');
+        if (!productsGrid) return;
+        
+        let filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+        
+        if (filteredProducts.length === 0) {
+            productsGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                    <i class="fas fa-box-open" style="font-size: 50px; opacity: 0.3; margin-bottom: 20px;"></i>
+                    <h3>No products in this category</h3>
+                    <p>Check back soon for new arrivals!</p>
+                </div>
+            `;
+            return;
         }
         
-        // 👇 SINGLE ADMIN CHECK - Check if user is admin in Firestore
-        try {
-            console.log('Checking admin status for:', user.email);
-            const adminDoc = await getDoc(doc(db, "admins", user.email));
+        productsGrid.innerHTML = filteredProducts.map(product => createProductCard(product)).join('');
+    }
+
+    window.filterProducts = function(category) {
+        document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        loadProducts(category);
+    };
+
+    window.addToCart = function(productId) {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        
+        const existingItem = cart.find(item => item.id === productId);
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({ id: product.id, name: product.name, price: product.price, icon: product.icon, quantity: 1 });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+        showCartNotification(`${product.name} added to cart!`);
+    };
+
+    function updateCartCount() {
+        const cartCount = document.querySelector('.cart-count');
+        if (cartCount) {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+    }
+
+    function showCartNotification(message) {
+        let cartNotification = document.querySelector('.cart-notification');
+        if (!cartNotification) {
+            cartNotification = document.createElement('div');
+            cartNotification.className = 'cart-notification';
+            document.body.appendChild(cartNotification);
+        }
+        cartNotification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        cartNotification.classList.add('show');
+        setTimeout(() => cartNotification.classList.remove('show'), 3000);
+    }
+
+    window.inquiryProduct = function(productId) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            const subject = encodeURIComponent(`Inquiry about: ${product.name}`);
+            const body = encodeURIComponent(`Hello,\n\nI'm interested in learning more about the ${product.name}.\n\nQuestions:\n- Is this in stock?\n- What skin types is it suitable for?\n- Any patch test recommendations?\n\nThank you!`);
+            window.location.href = `mailto:hello@globeauty.com?subject=${subject}&body=${body}`;
+        }
+    };
+
+    window.editProductFromHome = function(productId) {
+        if (!window.isAdmin) {
+            alert('You do not have permission to edit products.');
+            return;
+        }
+        if (confirm('Edit this product? You will be redirected to the admin dashboard.')) {
+            window.location.href = `admin-dashboard.html?editProduct=${productId}`;
+        }
+    };
+
+    window.showProductInfo = function(productId) {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        
+        const modal = document.getElementById('productModal');
+        const modalContent = document.getElementById('productModalContent');
+        
+        modalContent.innerHTML = `
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px; text-align: center;">
+                    <div style="background: var(--hover-bg); padding: 0; border-radius: 20px; overflow: hidden;">
+                        <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 250px; object-fit: cover;">
+                    </div>
+                </div>
+                <div style="flex: 2;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <span style="background: var(--primary); color: white; padding: 6px 18px; border-radius: 30px;">${product.categoryDisplay}</span>
+                        ${product.badge ? `<span style="background: var(--secondary); color: white; padding: 6px 18px; border-radius: 30px;">${product.badge}</span>` : ''}
+                    </div>
+                    <h2 style="font-size: 32px; margin-bottom: 15px;">${product.name}</h2>
+                    <div style="margin-bottom: 25px;">
+                        <span style="font-size: 36px; font-weight: 800; color: var(--secondary);">KSh ${toKSH(product.price).toLocaleString()}</span>
+                        ${product.originalPrice ? `<span style="font-size: 20px; opacity: 0.5; text-decoration: line-through; margin-left: 15px;">KSh ${toKSH(product.originalPrice).toLocaleString()}</span>` : ''}
+                    </div>
+                    <div style="background: var(--hover-bg); padding: 25px; border-radius: 20px; margin-bottom: 25px;">
+                        <h4 style="font-size: 18px; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Product Details</h4>
+                        <p>${product.fullDescription}</p>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button onclick="window.addToCart('${product.id}')" style="flex: 2; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 16px 30px; border-radius: 50px; font-weight: 700; cursor: pointer;">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button onclick="window.inquiryProduct('${product.id}')" style="flex: 1; background: var(--card-bg); border: 2px solid var(--primary); color: var(--primary); padding: 16px 20px; border-radius: 50px; font-weight: 700; cursor: pointer;">
+                            <i class="fas fa-question-circle"></i> Ask
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        modal.classList.add('active');
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('productModal').classList.remove('active');
+    };
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('productModal');
+        if (event.target === modal) {
+            modal.classList.remove('active');
+        }
+    };
+
+    // ===== SCROLL TO CATEGORY =====
+    window.scrollToCategory = function(category) {
+        setTimeout(() => {
+            const explorerSection = document.getElementById('categories');
+            if (explorerSection) {
+                explorerSection.scrollIntoView({ behavior: 'smooth' });
+                const categoryMarkers = document.querySelectorAll('.category-marker');
+                categoryMarkers.forEach(marker => {
+                    if (marker.getAttribute('data-category') === category) {
+                        marker.click();
+                    }
+                });
+            }
+        }, 100);
+    };
+
+    // ===== BOOK CONSULTATION =====
+    window.bookConsultation = function(expertName) {
+        const currentUser = localStorage.getItem('gloBeauty_currentUser');
+        if (currentUser) {
+            const user = JSON.parse(currentUser);
+            alert(`✅ Booking consultation with ${expertName}\n\nWe'll send a confirmation to ${user.phone || user.email}\n\nThis feature is coming soon!`);
+        } else {
+            if (confirm('Please sign in to book consultations. Go to login page?')) {
+                window.location.href = 'index.html';
+            }
+        }
+    };
+
+    // ===== BEAUTY BUNDLE BUILDER =====
+    const bundleProductsData = {
+        'dry': [
+            { id: 'b1', name: 'Hyaluronic Acid Serum', price: 42.99, icon: 'fa-droplet', concerns: ['hydration', 'aging'], preferences: ['clean', 'vegan', 'fragrance-free'], desc: 'Deep hydration for dry skin' },
+            { id: 'b2', name: 'Rich Moisture Cream', price: 38.50, icon: 'fa-cream', concerns: ['hydration', 'sensitivity'], preferences: ['clean', 'organic', 'fragrance-free'], desc: 'Intense nourishment' },
+            { id: 'b3', name: 'Gentle Milk Cleanser', price: 24.99, icon: 'fa-soap', concerns: ['sensitivity'], preferences: ['clean', 'fragrance-free', 'cruelty-free'], desc: 'Non-stripping formula' }
+        ],
+        'oily': [
+            { id: 'b4', name: 'Niacinamide Serum', price: 39.99, icon: 'fa-droplet', concerns: ['acne', 'pigment'], preferences: ['clean', 'vegan', 'fragrance-free'], desc: 'Controls oil and minimizes pores' },
+            { id: 'b5', name: 'Gel Moisturizer', price: 32.50, icon: 'fa-cream', concerns: ['hydration', 'acne'], preferences: ['clean', 'fragrance-free'], desc: 'Oil-free hydration' }
+        ],
+        'combination': [
+            { id: 'b6', name: 'Balancing Toner', price: 28.99, icon: 'fa-spray-can', concerns: ['acne', 'hydration'], preferences: ['clean', 'cruelty-free'], desc: 'Hydrates without greasiness' }
+        ],
+        'sensitive': [
+            { id: 'b7', name: 'Barrier Repair Cream', price: 44.99, icon: 'fa-shield', concerns: ['sensitivity', 'hydration'], preferences: ['fragrance-free', 'clean'], desc: 'Calms and soothes irritation' }
+        ],
+        'normal': [
+            { id: 'b8', name: 'Vitamin C Brightening Serum', price: 45.99, icon: 'fa-sun', concerns: ['aging', 'pigment'], preferences: ['clean', 'vegan'], desc: 'Brightens and protects' }
+        ]
+    };
+
+    let skinType = 'dry';
+    let skinTypeLabel = 'Dry';
+    let preference = 'clean';
+    let agingVal = 3, acneVal = 3, pigmentVal = 4, hydrationVal = 3, sensitivityVal = 3;
+
+    const skinTypeChips = document.querySelectorAll('#skin-type-chips .chip');
+    const preferenceCards = document.querySelectorAll('#preference-grid .theme-card');
+    const agingSlider = document.getElementById('aging-slider');
+    const acneSlider = document.getElementById('acne-slider');
+    const pigmentSlider = document.getElementById('pigment-slider');
+    const hydrationSlider = document.getElementById('hydration-slider');
+    const sensitivitySlider = document.getElementById('sensitivity-slider');
+    const agingValue = document.getElementById('aging-value');
+    const acneValue = document.getElementById('acne-value');
+    const pigmentValue = document.getElementById('pigment-value');
+    const hydrationValue = document.getElementById('hydration-value');
+    const sensitivityValue = document.getElementById('sensitivity-value');
+    const bundleTitle = document.getElementById('bundle-title-display');
+    const bundlePreference = document.getElementById('bundle-preference-display');
+    const bundleItemsContainer = document.getElementById('bundle-items-container');
+    const bundleSubtotal = document.getElementById('bundle-subtotal');
+    const bundlePriceTag = document.getElementById('bundle-price-tag');
+    const bundleDiscount = document.getElementById('bundle-discount');
+    const discountRow = document.getElementById('discount-row');
+    const freeGiftBadge = document.getElementById('free-gift-badge');
+    const expertNote = document.getElementById('expert-note');
+    const resetBtn = document.getElementById('reset-bundle-btn');
+    const addBundleBtn = document.getElementById('add-bundle-to-cart');
+    const saveBundleBtn = document.getElementById('save-bundle-to-profile');
+
+    function getConcernLevel(val) {
+        return val <= 2 ? 'Low' : val === 3 ? 'Medium' : 'High';
+    }
+
+    function getPreferenceInfo(pref) {
+        const map = {
+            'clean': { icon: 'fa-leaf', name: 'Clean Beauty' },
+            'luxury': { icon: 'fa-crown', name: 'Luxury' },
+            'vegan': { icon: 'fa-seedling', name: 'Vegan' },
+            'cruelty-free': { icon: 'fa-rabbit', name: 'Cruelty-Free' },
+            'fragrance-free': { icon: 'fa-wind', name: 'Fragrance-Free' },
+            'organic': { icon: 'fa-apple-alt', name: 'Organic' },
+            'k-beauty': { icon: 'fa-fan', name: 'K-Beauty' },
+            'clinical': { icon: 'fa-flask', name: 'Clinical' }
+        };
+        return map[pref] || { icon: 'fa-leaf', name: 'Clean Beauty' };
+    }
+
+    function generateBundleItems() {
+        const pool = bundleProductsData[skinType] || [];
+        const scored = pool.map(item => {
+            let score = 0;
+            if (item.concerns.includes('aging')) score += agingVal * 3;
+            if (item.concerns.includes('acne')) score += acneVal * 3;
+            if (item.concerns.includes('pigment')) score += pigmentVal * 3;
+            if (item.concerns.includes('hydration')) score += hydrationVal * 3;
+            if (item.concerns.includes('sensitivity')) score += sensitivityVal * 3;
+            if (item.preferences.includes(preference)) score += 20;
+            return { ...item, score };
+        });
+        scored.sort((a, b) => b.score - a.score);
+        return scored.slice(0, 4);
+    }
+
+    function getTopConcerns() {
+        const concerns = [];
+        if (agingVal >= 4) concerns.push('anti-aging');
+        if (acneVal >= 4) concerns.push('acne control');
+        if (pigmentVal >= 4) concerns.push('brightening');
+        if (hydrationVal >= 4) concerns.push('hydration');
+        if (sensitivityVal >= 4) concerns.push('soothing');
+        if (concerns.length === 0) return 'balanced';
+        if (concerns.length === 1) return concerns[0];
+        if (concerns.length === 2) return concerns.join(' and ');
+        return concerns.slice(0, -1).join(', ') + ', and ' + concerns.slice(-1);
+    }
+
+    function renderBundlePreview() {
+        if (!bundleTitle || !bundlePreference || !bundleItemsContainer) return;
+        
+        bundleTitle.textContent = skinTypeLabel + ' Skin Essentials';
+        const prefInfo = getPreferenceInfo(preference);
+        bundlePreference.innerHTML = `<i class="fas ${prefInfo.icon}"></i> ${prefInfo.name}`;
+        
+        const items = generateBundleItems();
+        let subtotal = 0;
+        let itemsHtml = '';
+        
+        items.forEach(item => {
+            subtotal += item.price;
+            itemsHtml += `
+                <div class="bundle-item">
+                    <i class="fas ${item.icon}"></i>
+                    <span>${item.name}</span>
+                    <span style="font-weight: 700;">KSh ${Math.round(item.price * 130).toLocaleString()}</span>
+                </div>
+            `;
+        });
+        
+        if (itemsHtml === '') {
+            bundleItemsContainer.innerHTML = `
+                <div class="empty-bundle">
+                    <i class="fas fa-cube" style="font-size: 40px; color: #ddd;"></i>
+                    <p style="margin-top: 12px;">Customize your bundle to see products</p>
+                </div>
+            `;
+        } else {
+            bundleItemsContainer.innerHTML = itemsHtml;
+        }
+        
+        const subtotalKsh = Math.round(subtotal * 130);
+        const shippingKsh = 150;
+        let totalKsh = subtotalKsh + shippingKsh;
+        let discountKsh = 0;
+        
+        if (items.some(item => item.price * 130 >= 500)) {
+            discountKsh = Math.round(subtotalKsh * 0.1);
+            totalKsh = subtotalKsh - discountKsh + shippingKsh;
+            if (discountRow) discountRow.style.display = 'flex';
+            if (bundleDiscount) bundleDiscount.textContent = `-KSh ${discountKsh.toLocaleString()}`;
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+        }
+        
+        if (freeGiftBadge) {
+            freeGiftBadge.style.display = items.length >= 4 ? 'flex' : 'none';
+        }
+        
+        if (bundleSubtotal) bundleSubtotal.textContent = `KSh ${subtotalKsh.toLocaleString()}`;
+        if (bundlePriceTag) bundlePriceTag.textContent = `KSh ${totalKsh.toLocaleString()}`;
+        
+        if (expertNote) {
+            const topConcerns = getTopConcerns();
+            expertNote.innerHTML = `<i class="fas fa-lightbulb"></i> <strong>Beauty tip:</strong> This bundle focuses on <strong>${topConcerns}</strong> for ${skinTypeLabel} skin.`;
+        }
+    }
+
+    if (skinTypeChips.length > 0) {
+        skinTypeChips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                skinTypeChips.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                skinType = this.dataset.skin;
+                skinTypeLabel = this.dataset.label;
+                renderBundlePreview();
+            });
+        });
+    }
+
+    if (preferenceCards.length > 0) {
+        preferenceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                preferenceCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                preference = this.dataset.preference;
+                renderBundlePreview();
+            });
+        });
+    }
+
+    if (agingSlider) {
+        agingSlider.addEventListener('input', function() {
+            agingVal = parseInt(this.value);
+            if (agingValue) agingValue.textContent = getConcernLevel(agingVal);
+            renderBundlePreview();
+        });
+    }
+
+    if (acneSlider) {
+        acneSlider.addEventListener('input', function() {
+            acneVal = parseInt(this.value);
+            if (acneValue) acneValue.textContent = getConcernLevel(acneVal);
+            renderBundlePreview();
+        });
+    }
+
+    if (pigmentSlider) {
+        pigmentSlider.addEventListener('input', function() {
+            pigmentVal = parseInt(this.value);
+            if (pigmentValue) pigmentValue.textContent = getConcernLevel(pigmentVal);
+            renderBundlePreview();
+        });
+    }
+
+    if (hydrationSlider) {
+        hydrationSlider.addEventListener('input', function() {
+            hydrationVal = parseInt(this.value);
+            if (hydrationValue) hydrationValue.textContent = getConcernLevel(hydrationVal);
+            renderBundlePreview();
+        });
+    }
+
+    if (sensitivitySlider) {
+        sensitivitySlider.addEventListener('input', function() {
+            sensitivityVal = parseInt(this.value);
+            if (sensitivityValue) sensitivityValue.textContent = getConcernLevel(sensitivityVal);
+            renderBundlePreview();
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            if (skinTypeChips.length > 0) {
+                skinTypeChips.forEach((chip, index) => {
+                    if (index === 0) chip.classList.add('selected');
+                    else chip.classList.remove('selected');
+                });
+            }
+            skinType = 'dry';
+            skinTypeLabel = 'Dry';
             
-            // Set global admin flag for edit buttons
-            window.isAdmin = adminDoc.exists();
-            console.log('Admin status:', window.isAdmin);
+            if (agingSlider) agingSlider.value = 3;
+            if (acneSlider) acneSlider.value = 3;
+            if (pigmentSlider) pigmentSlider.value = 4;
+            if (hydrationSlider) hydrationSlider.value = 3;
+            if (sensitivitySlider) sensitivitySlider.value = 3;
             
-            if (adminDoc.exists()) {
-                // ✅ User is admin - show admin button
-                console.log('✅ Admin access granted');
-                adminNavItem.style.display = 'block';
-                
-                // Optional: Customize admin button based on role
-                const adminData = adminDoc.data();
-                const adminBtn = adminNavItem.querySelector('a');
-                if (adminBtn && adminData.role === 'super_admin') {
-                    adminBtn.innerHTML = '<i class="fas fa-crown"></i> Super Admin';
-                }
+            agingVal = 3; acneVal = 3; pigmentVal = 4; hydrationVal = 3; sensitivityVal = 3;
+            
+            if (agingValue) agingValue.textContent = 'Medium';
+            if (acneValue) acneValue.textContent = 'Medium';
+            if (pigmentValue) pigmentValue.textContent = 'High';
+            if (hydrationValue) hydrationValue.textContent = 'Medium';
+            if (sensitivityValue) sensitivityValue.textContent = 'Medium';
+            
+            if (preferenceCards.length > 0) {
+                preferenceCards.forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.dataset.preference === 'clean') {
+                        card.classList.add('selected');
+                    }
+                });
+            }
+            preference = 'clean';
+            
+            renderBundlePreview();
+        });
+    }
+
+    if (addBundleBtn) {
+        addBundleBtn.addEventListener('click', function() {
+            const items = generateBundleItems();
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            items.forEach(item => {
+                cart.push({
+                    id: item.id || Date.now() + Math.random(),
+                    name: item.name,
+                    price: item.price,
+                    quantity: 1,
+                    icon: item.icon
+                });
+            });
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = totalItems;
+            }
+            
+            alert('✅ Beauty bundle added to your cart!');
+        });
+    }
+
+    if (saveBundleBtn) {
+        saveBundleBtn.addEventListener('click', function() {
+            if (auth.currentUser) {
+                alert('✅ Bundle saved to your profile!');
             } else {
-                // ❌ Not an admin - hide admin button
-                console.log('❌ Not an admin');
+                if (confirm('Please sign in to save to your profile. Go to login page?')) {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+    }
+
+    // ===== AUTH STATE HANDLER =====
+    onAuthStateChanged(auth, async (user) => {
+        const adminNavItem = document.getElementById('adminNavItem');
+        const accountBtn = document.getElementById('accountBtn');
+        
+        if (user) {
+            console.log('User logged in:', user.email);
+            
+            if (accountBtn) {
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.email.split('@')[0]}`;
+                accountBtn.href = "#";
+                accountBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (confirm('Logout from GloBeauty?')) {
+                        signOut(auth).then(() => {
+                            localStorage.removeItem('gloBeauty_currentUser');
+                            window.location.href = 'index.html';
+                        });
+                    }
+                };
+            }
+            
+            try {
+                const adminDoc = await getDoc(doc(db, "admins", user.email));
+                window.isAdmin = adminDoc.exists();
+                
+                if (adminDoc.exists()) {
+                    adminNavItem.style.display = 'block';
+                    const adminData = adminDoc.data();
+                    const adminBtn = adminNavItem.querySelector('a');
+                    if (adminBtn && adminData.role === 'super_admin') {
+                        adminBtn.innerHTML = '<i class="fas fa-crown"></i> Super Admin';
+                    }
+                } else {
+                    adminNavItem.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                window.isAdmin = false;
                 adminNavItem.style.display = 'none';
             }
-        } catch (error) {
-            // ❌ Error checking admin status
-            console.error('Error checking admin status:', error);
-            window.isAdmin = false;
+            
+        } else {
+            if (accountBtn) {
+                accountBtn.innerHTML = '<i class="fas fa-user"></i> Sign In';
+                accountBtn.href = 'index.html';
+            }
             adminNavItem.style.display = 'none';
+            window.isAdmin = false;
         }
-        
-    } else {
-        // User is logged out
-        if (accountBtn) {
-            accountBtn.innerHTML = '<i class="fas fa-user"></i> Sign In';
-            accountBtn.href = 'index.html';
-        }
-        adminNavItem.style.display = 'none';
-        window.isAdmin = false; // 👈 Important: Reset when logged out
-    }
-});
+    });
 
-    window.logout = function() {
-        signOut(auth).then(() => {
-            localStorage.removeItem('gloBeauty_currentUser');
-            window.location.href = 'index.html';
-        });
-    };
-</script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('gloBeauty_theme') || 'light';
-            document.body.setAttribute('data-theme', savedTheme);
-        });
-    </script>
-
-   <!-- Search Modal/Panel -->
-<div class="search-overlay" id="searchOverlay">
-    <div class="search-container">
-        <div class="search-header">
-            <h3><i class="fas fa-search"></i> Search Products</h3>
-            <button class="close-search" onclick="toggleSearch()">&times;</button>
-        </div>
-        <div class="search-input-wrapper">
-            <i class="fas fa-search search-input-icon"></i>
-            <input type="text" id="searchInput" placeholder="Search for skincare, makeup, haircare, tools, nail care..." autocomplete="off">
-            <button class="clear-search" id="clearSearch" onclick="clearSearch()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="search-filters">
-            <div class="filter-chips">
-                <span class="filter-chip active" data-filter="all" onclick="filterSearch('all')">All</span>
-                <span class="filter-chip" data-filter="skincare" onclick="filterSearch('skincare')">Skincare</span>
-                <span class="filter-chip" data-filter="makeup" onclick="filterSearch('makeup')">Makeup</span>
-                <span class="filter-chip" data-filter="haircare" onclick="filterSearch('haircare')">Haircare</span>
-                <span class="filter-chip" data-filter="fragrance" onclick="filterSearch('fragrance')">Fragrance</span>
-                <span class="filter-chip" data-filter="tools" onclick="filterSearch('tools')">Tools</span>
-                <span class="filter-chip" data-filter="nail" onclick="filterSearch('nail')">Nail Care</span>
-            </div>
-        </div>
-        <div class="search-results" id="searchResults">
-            <!-- Search results will appear here -->
-            <div class="search-initial">
-                <i class="fas fa-arrow-up"></i>
-                <p>Type something to search products...</p>
-            </div>
-        </div>
-        <div class="search-footer">
-            <span><kbd>ESC</kbd> to close</span>
-            <span><kbd>↑</kbd> <kbd>↓</kbd> to navigate</span>
-        </div>
-    </div>
-</div>
-
-<!-- Keyboard Shortcut Hint -->
-<div class="search-shortcut-hint" id="searchShortcutHint">
-    <span>Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to search</span>
-</div>
-
-    <script>
-    // Search Functionality
+    // ===== SEARCH FUNCTIONALITY =====
     let currentSearchFilter = 'all';
     let searchResults = [];
     let selectedResultIndex = -1;
-    
-// Search uses the products array loaded from Firebase
-// No need for separate declaration - it will use the global 'products' variable    const searchProducts = products;
-    
-    // Toggle search overlay
+
+    // Search functions need to be attached to window
     window.toggleSearch = function() {
         const overlay = document.getElementById('searchOverlay');
         const input = document.getElementById('searchInput');
@@ -3494,8 +3388,7 @@ onAuthStateChanged(auth, async (user) => {
             }, 100);
         }
     };
-    
-    // Clear search
+
     window.clearSearch = function() {
         const input = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearch');
@@ -3506,11 +3399,12 @@ onAuthStateChanged(auth, async (user) => {
         }
         if (clearBtn) clearBtn.style.display = 'none';
     };
-    
-    // Perform search
+
     function performSearch(query) {
         const resultsContainer = document.getElementById('searchResults');
         const clearBtn = document.getElementById('clearSearch');
+        
+        if (!resultsContainer) return;
         
         // Show/hide clear button
         if (clearBtn) {
@@ -3518,7 +3412,7 @@ onAuthStateChanged(auth, async (user) => {
         }
         
         // Filter products based on query and category filter
-        let filtered = searchProducts;
+        let filtered = products;
         
         // Apply category filter
         if (currentSearchFilter !== 'all') {
@@ -3564,12 +3458,11 @@ onAuthStateChanged(auth, async (user) => {
             resultsContainer.innerHTML = html;
         }
     }
-    
-    // Create search result item HTML
+
     function createSearchResultItem(product) {
         const kshPrice = Math.round(product.price * 130).toLocaleString();
         return `
-            <div class="search-result-item" onclick="selectProduct(${product.id})" data-id="${product.id}">
+            <div class="search-result-item" onclick="window.selectProduct('${product.id}')" data-id="${product.id}">
                 <div class="result-icon">
                     <i class="fas ${product.icon || 'fa-tag'}"></i>
                 </div>
@@ -3585,27 +3478,22 @@ onAuthStateChanged(auth, async (user) => {
             </div>
         `;
     }
-    
-    // Select product
+
     window.selectProduct = function(productId) {
-        const product = searchProducts.find(p => p.id === productId);
+        const product = products.find(p => p.id === productId);
         if (product) {
             toggleSearch(); // Close search
-            // Show product info
-            if (typeof showProductInfo === 'function') {
-                showProductInfo(productId);
+            if (typeof window.showProductInfo === 'function') {
+                window.showProductInfo(productId);
             } else {
-                // Fallback: show alert
                 alert(`Selected: ${product.name}\nPrice: KSh ${Math.round(product.price * 130).toLocaleString()}`);
             }
         }
     };
-    
-    // Filter search by category
+
     window.filterSearch = function(category) {
         currentSearchFilter = category;
         
-        // Update active chip
         document.querySelectorAll('.filter-chip').forEach(chip => {
             if (chip.dataset.filter === category) {
                 chip.classList.add('active');
@@ -3614,12 +3502,10 @@ onAuthStateChanged(auth, async (user) => {
             }
         });
         
-        // Re-run search with current query
         const input = document.getElementById('searchInput');
         performSearch(input ? input.value : '');
     };
-    
-    // Clear search results
+
     function clearSearchResults() {
         const results = document.getElementById('searchResults');
         if (results) {
@@ -3631,23 +3517,87 @@ onAuthStateChanged(auth, async (user) => {
             `;
         }
     }
-    
+
+    function updateSelectedResult(results) {
+        results.forEach((result, index) => {
+            if (index === selectedResultIndex) {
+                result.classList.add('selected');
+                result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                result.classList.remove('selected');
+            }
+        });
+    }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Load products
+        await loadProductsFromFirebase();
+        updateCartCount();
+        
+        // Theme
+        const savedTheme = localStorage.getItem('gloBeauty_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            const themeIcon = themeToggle.querySelector('i');
+            themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            
+            themeToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const currentTheme = document.body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('gloBeauty_theme', newTheme);
+                
+                const icon = themeToggle.querySelector('i');
+                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                themeToggle.style.transform = 'rotate(360deg)';
+                setTimeout(() => {
+                    themeToggle.style.transform = 'rotate(0deg)';
+                }, 300);
+            });
+        }
+        
+        // Initialize bundle builder values
+        if (agingValue) agingValue.textContent = 'Medium';
+        if (acneValue) acneValue.textContent = 'Medium';
+        if (pigmentValue) pigmentValue.textContent = 'High';
+        if (hydrationValue) hydrationValue.textContent = 'Medium';
+        if (sensitivityValue) sensitivityValue.textContent = 'Medium';
+        renderBundlePreview();
+        
+        // Search input event listener
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                performSearch(e.target.value);
+            });
+        }
+        
+        // Hide hint after 5 seconds
+        setTimeout(() => {
+            const hint = document.getElementById('searchShortcutHint');
+            if (hint) hint.classList.add('hide');
+        }, 5000);
+    });
+
     // Keyboard navigation
     document.addEventListener('keydown', function(e) {
         const overlay = document.getElementById('searchOverlay');
         
-        // Ctrl+K to open search
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
-            toggleSearch();
+            window.toggleSearch();
         }
         
-        // ESC to close search
         if (e.key === 'Escape' && overlay && overlay.classList.contains('active')) {
-            toggleSearch();
+            window.toggleSearch();
         }
         
-        // Arrow keys for navigation
         if (overlay && overlay.classList.contains('active')) {
             const results = document.querySelectorAll('.search-result-item');
             
@@ -3664,86 +3614,19 @@ onAuthStateChanged(auth, async (user) => {
                 const selected = results[selectedResultIndex];
                 if (selected) {
                     const productId = selected.dataset.id;
-                    selectProduct(parseInt(productId));
+                    window.selectProduct(productId);
                 }
             }
         }
     });
-    
-    // Update selected result styling
-    function updateSelectedResult(results) {
-        results.forEach((result, index) => {
-            if (index === selectedResultIndex) {
-                result.classList.add('selected');
-                result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            } else {
-                result.classList.remove('selected');
-            }
+
+    // Make functions available globally
+    window.logout = function() {
+        signOut(auth).then(() => {
+            localStorage.removeItem('gloBeauty_currentUser');
+            window.location.href = 'index.html';
         });
-    }
-    
-    // Input event listener
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                performSearch(e.target.value);
-            });
-        }
-        
-        // Hide hint after 5 seconds
-        setTimeout(() => {
-            const hint = document.getElementById('searchShortcutHint');
-            if (hint) hint.classList.add('hide');
-        }, 5000);
-    });
-</script>
-    <script>
-    // Theme Toggle Functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = themeToggle.querySelector('i');
-        
-        // Check for saved theme preference
-        const savedTheme = localStorage.getItem('gloBeauty_theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        
-        // Update icon based on current theme
-        if (savedTheme === 'dark') {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        } else {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        }
-        
-        // Toggle theme on click
-        themeToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const currentTheme = document.body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            // Update theme
-            document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('gloBeauty_theme', newTheme);
-            
-            // Update icon
-            if (newTheme === 'dark') {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
-            
-            // Optional: Add animation effect
-            themeToggle.style.transform = 'rotate(360deg)';
-            setTimeout(() => {
-                themeToggle.style.transform = 'rotate(0deg)';
-            }, 300);
-        });
-    });
+    };
 </script>
 </body>
 </html>
